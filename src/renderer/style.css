@@ -219,7 +219,7 @@ body {
   width: 100% !important;
   height: 100% !important;
   border: none;
-  display: block !important; /* 确保 webview 作为块级元素显示 */
+  display: flex !important; /* 确保 webview 作为块级元素显示 */
   flex: 1; /* 使用 flex 填充整个容器 */
   min-height: 0; /* 确保可以收缩 */
 }
@@ -228,7 +228,7 @@ body {
 webview {
   width: 100% !important;
   height: 100% !important;
-  display: block !important;
+  display: flex !important;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
