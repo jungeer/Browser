@@ -1,0 +1,252 @@
+// 🎨 SCSS 使用示例
+// ==========================================
+// 这个文件展示了如何使用项目中的 SCSS 变量和 mixins
+
+// 🔧 示例：现代按钮组件
+.example-button {
+  @include button-primary;
+  padding: $spacing-md $spacing-xl;
+  margin: $spacing-sm;
+  
+  &.secondary {
+    @include button-secondary;
+  }
+  
+  &.large {
+    font-size: $font-size-lg;
+    padding: $spacing-lg $spacing-xxl;
+  }
+  
+  &.small {
+    font-size: $font-size-sm;
+    padding: $spacing-xs $spacing-md;
+  }
+}
+
+// 🎯 示例：卡片组件
+.example-card {
+  background: $background-color;
+  border-radius: $border-radius-lg;
+  padding: $spacing-xl;
+  margin: $spacing-lg;
+  @include card-shadow;
+  
+  .card-title {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    margin-bottom: $spacing-md;
+    @include text-ellipsis;
+  }
+  
+  .card-content {
+    color: $text-secondary;
+    line-height: 1.6;
+  }
+  
+  .card-actions {
+    @include flex-between;
+    margin-top: $spacing-lg;
+    padding-top: $spacing-md;
+    border-top: 1px solid $border-light;
+  }
+}
+
+// 📱 示例：响应式导航栏
+.example-navbar {
+  @include flex-between;
+  height: $toolbar-height;
+  background: $surface-color;
+  border-bottom: 1px solid $border-color;
+  padding: 0 $spacing-xl;
+  
+  .nav-brand {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-bold;
+    color: $primary-color;
+  }
+  
+  .nav-menu {
+    @include flex-start;
+    gap: $spacing-lg;
+    
+    @include mobile {
+      display: none;
+    }
+  }
+  
+  .nav-item {
+    color: $text-primary;
+    text-decoration: none;
+    padding: $spacing-sm $spacing-md;
+    border-radius: $border-radius-base;
+    transition: all $transition-base;
+    
+    &:hover {
+      background: $border-light;
+      color: $primary-color;
+    }
+    
+    &.active {
+      @include theme-primary;
+    }
+  }
+}
+
+// 🌈 示例：状态指示器
+.example-status {
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  
+  &.success {
+    background: rgba($success-color, 0.1);
+    color: $success-color;
+    border: 1px solid rgba($success-color, 0.3);
+  }
+  
+  &.warning {
+    background: rgba($warning-color, 0.1);
+    color: $warning-color;
+    border: 1px solid rgba($warning-color, 0.3);
+  }
+  
+  &.error {
+    background: rgba($error-color, 0.1);
+    color: $error-color;
+    border: 1px solid rgba($error-color, 0.3);
+  }
+  
+  &.info {
+    background: rgba($info-color, 0.1);
+    color: $info-color;
+    border: 1px solid rgba($info-color, 0.3);
+  }
+}
+
+// 📦 示例：输入框组
+.example-form-group {
+  margin-bottom: $spacing-lg;
+  
+  .form-label {
+    display: block;
+    font-weight: $font-weight-medium;
+    color: $text-primary;
+    margin-bottom: $spacing-xs;
+  }
+  
+  .form-input {
+    @include input-base;
+    width: 100%;
+    
+    &.error {
+      border-color: $error-color;
+      
+      &:focus {
+        box-shadow: 0 0 0 2px rgba($error-color, 0.2);
+      }
+    }
+  }
+  
+  .form-help {
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    margin-top: $spacing-xs;
+    
+    &.error {
+      color: $error-color;
+    }
+  }
+}
+
+// 🎭 示例：加载状态
+.example-loading {
+  @include flex-center;
+  padding: $spacing-xl;
+  
+  .spinner {
+    width: 40px;
+    height: 40px;
+    @include loading-spinner;
+  }
+  
+  .loading-text {
+    margin-left: $spacing-md;
+    color: $text-secondary;
+  }
+}
+
+// 🌟 示例：工具提示
+.example-tooltip {
+  position: relative;
+  display: inline-block;
+  
+  &:hover .tooltip-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(-5px);
+  }
+  
+  .tooltip-content {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(0);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: $spacing-xs $spacing-sm;
+    border-radius: $border-radius-base;
+    font-size: $font-size-sm;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all $transition-base;
+    z-index: $z-tooltip;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-top-color: rgba(0, 0, 0, 0.8);
+    }
+  }
+}
+
+// 🎨 示例：渐变背景
+.example-gradient {
+  background: linear-gradient(135deg, $primary-color, $accent-color);
+  color: white;
+  padding: $spacing-xl;
+  border-radius: $border-radius-lg;
+  text-align: center;
+  
+  h2 {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    margin-bottom: $spacing-md;
+  }
+  
+  p {
+    opacity: 0.9;
+    line-height: 1.6;
+  }
+}
+
+// 🔥 示例：动画效果
+.example-animation {
+  .fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  
+  .slide-up {
+    animation: slideUp 0.6s ease-out;
+  }
+  
+  .hover-lift {
+    @include hover-lift;
+  }
+} 

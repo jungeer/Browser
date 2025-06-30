@@ -1,0 +1,319 @@
+/* 全局样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
+  overflow: hidden;
+  user-select: none;
+}
+
+#app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 浏览器工具栏样式 */
+.browser-toolbar {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  padding: 0 10px;
+  gap: 10px;
+}
+
+.navigation-buttons {
+  display: flex;
+  gap: 5px;
+}
+
+.nav-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: #e9e9e9;
+  border-color: #bbb;
+}
+
+.nav-btn:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+  background: #f9f9f9;
+}
+
+.address-bar {
+  flex: 1;
+  display: flex;
+  gap: 5px;
+}
+
+.url-input {
+  flex: 1;
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.url-input:focus {
+  border-color: #007acc;
+  box-shadow: 0 0 0 2px rgba(0, 122, 204, 0.2);
+}
+
+.go-btn {
+  height: 32px;
+  padding: 0 16px;
+  border: 1px solid #007acc;
+  background: #007acc;
+  color: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.go-btn:hover {
+  background: #005a9e;
+}
+
+.tab-controls {
+  display: flex;
+  gap: 5px;
+}
+
+.tab-btn {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ccc;
+  background: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.tab-btn:hover {
+  background: #e9e9e9;
+  border-color: #bbb;
+}
+
+/* 标签页容器样式 */
+.tabs-container {
+  display: flex;
+  background: #f0f0f0;
+  border-bottom: 1px solid #ddd;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tabs-container::-webkit-scrollbar {
+  display: none;
+}
+
+.tab {
+  display: flex;
+  align-items: center;
+  min-width: 200px;
+  max-width: 250px;
+  height: 36px;
+  padding: 0 12px;
+  background: #e0e0e0;
+  border-right: 1px solid #ccc;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  position: relative;
+}
+
+.tab:hover {
+  background: #d0d0d0;
+}
+
+.tab.active {
+  background: #fff;
+  border-bottom: 2px solid #007acc;
+}
+
+.tab-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+}
+
+.close-tab-btn {
+  width: 20px;
+  height: 20px;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 8px;
+  transition: all 0.2s;
+}
+
+.close-tab-btn:hover {
+  background: #ccc;
+  color: #333;
+}
+
+/* 网页内容区域样式 */
+.web-content {
+  flex: 1;
+  background: #fff;
+  position: relative;
+  overflow: hidden; /* 防止内容溢出 */
+  min-height: 0; /* 确保 flex 子项可以收缩 */
+  height: calc(100vh - 110px); /* 精确计算：总高度 - 工具栏(50px) - 标签页(36px) - 状态栏(24px) */
+  max-height: calc(100vh - 110px);
+}
+
+.webview {
+  width: 100% !important;
+  height: 100% !important;
+  border: none;
+  display: block !important; /* 确保 webview 作为块级元素显示 */
+  object-fit: fill; /* 确保内容填充整个容器 */
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+/* 修复 webview 内部 iframe 样式 */
+webview {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  outline: none !important;
+}
+
+webview iframe {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* 确保 webview 内部的 iframe 也能正确填充 */
+webview::part(inner-iframe) {
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+/* 强制覆盖 webview 内部可能的样式 */
+webview[style] {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* 状态栏样式 */
+.status-bar {
+  height: 24px;
+  background: #f5f5f5;
+  border-top: 1px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  font-size: 12px;
+  color: #666;
+}
+
+.status-text {
+  flex: 1;
+}
+
+.app-info {
+  font-size: 11px;
+  color: #999;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .browser-toolbar {
+    padding: 0 5px;
+    gap: 5px;
+  }
+  
+  .tab {
+    min-width: 150px;
+    max-width: 200px;
+  }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* 加载动画 */
+@keyframes loading {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading {
+  animation: loading 1s linear infinite;
+} 

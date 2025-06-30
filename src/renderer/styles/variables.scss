@@ -1,0 +1,82 @@
+// 🎨 设计系统变量定义
+// ==========================================
+
+// 🌈 主题颜色
+$primary-color: #007acc;
+$primary-hover: #005a9e;
+$secondary-color: #f5f5f5;
+$accent-color: #0066cc;
+
+// 📱 界面颜色
+$background-color: #ffffff;
+$surface-color: #f9f9f9;
+$border-color: #ddd;
+$border-light: #e9e9e9;
+$text-primary: #333;
+$text-secondary: #666;
+$text-disabled: #ccc;
+
+// 🚨 状态颜色
+$success-color: #28a745;
+$warning-color: #ffc107;
+$error-color: #dc3545;
+$info-color: #17a2b8;
+
+// 📏 尺寸变量
+$toolbar-height: 50px;
+$tab-height: 36px;
+$status-bar-height: 24px;
+$header-total-height: #{$toolbar-height + $tab-height + $status-bar-height}; // 110px
+
+// 🎯 间距系统
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 12px;
+$spacing-lg: 16px;
+$spacing-xl: 24px;
+$spacing-xxl: 32px;
+
+// 🔤 字体系统
+$font-size-xs: 11px;
+$font-size-sm: 12px;
+$font-size-base: 14px;
+$font-size-lg: 16px;
+$font-size-xl: 18px;
+
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-bold: 700;
+
+// 📐 圆角
+$border-radius-sm: 2px;
+$border-radius-base: 4px;
+$border-radius-lg: 8px;
+$border-radius-xl: 12px;
+$border-radius-full: 50%;
+
+// 🌟 阴影
+$shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+$shadow-base: 0 2px 8px rgba(0, 0, 0, 0.15);
+$shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.2);
+
+// ⚡ 动画
+$transition-fast: 0.15s ease;
+$transition-base: 0.2s ease;
+$transition-slow: 0.3s ease;
+
+// 🎯 Z-index 层级
+$z-dropdown: 1000;
+$z-modal: 2000;
+$z-tooltip: 3000;
+$z-popover: 4000;
+
+// 📱 响应式断点
+$breakpoint-sm: 576px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 992px;
+$breakpoint-xl: 1200px;
+
+// 🖥️ 浏览器特定变量
+$webview-z-index: 1;
+$toolbar-z-index: 10;
+$tabs-z-index: 5; 
