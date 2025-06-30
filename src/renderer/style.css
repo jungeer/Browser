@@ -123,38 +123,90 @@ body {
   flex-direction: column;
   background: var(--theme-background);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  /* 为固定的自定义标题栏留出空间 - 根据 Electron 官方文档 */
+  padding-top: 16px;
 }
 
 /* 顶部标题栏样式 - Chrome风格 */
-.title-bar {
+/* Chrome风格顶部标题栏 - 基于 Electron 官方文档 */
+.chrome-title-bar {
   display: flex;
-  align-items: center;
-  height: 48px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  align-items: stretch;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
   z-index: 200;
-  /* 支持窗口拖拽 */
+  /* 关键：使整个标题栏可拖拽 - 根据 Electron 官方文档 */
   -webkit-app-region: drag;
+  padding: 0;
+  /* 确保标题栏在顶部 */
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
 }
 
-.title-bar * {
-  /* 禁用子元素的拖拽 */
+/* 标题栏中的所有交互元素必须禁用拖拽 - 根据 Electron 官方文档 */
+.chrome-title-bar button,
+.chrome-title-bar input,
+.chrome-title-bar .tab,
+.chrome-title-bar .new-tab-btn,
+.chrome-title-bar .control-btn,
+.chrome-title-bar .close-tab-btn {
+  /* 关键：让按钮等交互元素不触发窗口拖拽 */
   -webkit-app-region: no-drag;
 }
 
-/* 标签页容器 */
+/* 深色主题下的标题栏样式 - 匹配 Electron 配置 */
+.theme-dark .chrome-title-bar {
+  background: rgba(26, 32, 44, 0.95); /* 匹配主进程中的 #1a202c */
+  border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* 深色主题下的标签页优化 */
+.theme-dark .tab {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.theme-dark .tab:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.theme-dark .tab.active {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* macOS 特殊优化 - 为红绿灯按钮留出空间 */
+@media screen and (-webkit-min-device-pixel-ratio: 1) {
+  .chrome-title-bar .tabs-container {
+    /* 在 macOS 上为红绿灯按钮留出更多空间 */
+    padding-left: 80px;
+  }
+}
+
+/* Windows/Linux 优化 - 原生窗口控件区域 */
+.chrome-title-bar {
+  /* 确保在 Windows/Linux 上为原生控件留出空间 */
+  padding-right: env(titlebar-area-x, 0px);
+}
+
+/* Chrome风格标签页容器 */
 .tabs-container {
   flex: 1;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   height: 100%;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 0 4px;
-  gap: 2px;
+  padding: 0 8px 0 4px;
+  gap: 0;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -163,50 +215,57 @@ body {
   display: none;
 }
 
-/* 标签页样式 */
+/* Chrome风格标签页 */
 .tab {
   display: flex;
   align-items: center;
-  height: 36px;
+  height: 100%;
   min-width: 120px;
   max-width: 240px;
-  padding: 0 12px 0 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 12px 12px 0 0;
+  padding: 0 16px 0 12px;
+  background: rgba(255, 255, 255, 0.06);
   cursor: pointer;
   position: relative;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  margin-right: 2px;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
+  /* Chrome风格梯形 */
+  border-radius: 8px 8px 0 0;
+  margin-right: -1px;
 }
 
 .tab:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.15);
+  z-index: 1;
 }
 
 .tab.active {
-  background: rgba(255, 255, 255, 0.2);
-  border-bottom-color: transparent;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid transparent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 2;
 }
 
 .tab.active::before {
   content: '';
   position: absolute;
-  bottom: 0;
+  bottom: -1px;
   left: 0;
   right: 0;
   height: 2px;
   background: var(--theme-accent);
+  border-radius: 1px 1px 0 0;
 }
 
-/* 标签页图标 */
+/* Chrome风格标签页图标 */
 .tab-favicon,
 .tab-icon {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   margin-right: 8px;
   flex-shrink: 0;
   border-radius: 2px;
@@ -216,22 +275,22 @@ body {
   color: var(--theme-text-secondary);
 }
 
-/* 标签页标题 */
+/* Chrome风格标签页标题 */
 .tab-title {
   flex: 1;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--theme-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  line-height: 1.2;
+  line-height: 1.3;
 }
 
-/* 关闭标签按钮 */
+/* Chrome风格关闭标签按钮 */
 .close-tab-btn {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   border: none;
   background: rgba(255, 255, 255, 0.1);
   border-radius: 50%;
@@ -240,8 +299,8 @@ body {
   justify-content: center;
   cursor: pointer;
   opacity: 0;
-  transition: all 0.2s ease;
-  margin-left: 4px;
+  transition: all 0.15s ease;
+  margin-left: 6px;
   color: var(--theme-text);
 }
 
@@ -250,24 +309,26 @@ body {
 }
 
 .close-tab-btn:hover {
-  background: rgba(255, 0, 0, 0.6);
+  background: rgba(255, 60, 60, 0.8);
   color: white;
+  transform: scale(1.1);
 }
 
-/* 新建标签按钮 */
+/* Chrome风格新建标签按钮 */
 .new-tab-btn {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: none;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   color: var(--theme-text);
-  margin: 0 8px;
+  margin: 0 8px 0 4px;
+  align-self: center;
 }
 
 .new-tab-btn:hover {
@@ -275,34 +336,35 @@ body {
   transform: scale(1.1);
 }
 
-/* 窗口控制区域 */
+/* Chrome风格窗口控制区域 */
 .window-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding-right: 16px;
+  gap: 4px;
+  padding: 0 12px 0 8px;
+  height: 100%;
 }
 
 .control-btn {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border: none;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   color: var(--theme-text);
 }
 
 .control-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
 }
 
-/* 浏览器工具栏样式 - 现代化设计 */
+/* 浏览器工具栏样式 - 现代化设计，配合自定义标题栏 */
 .browser-toolbar {
   display: flex;
   align-items: center;
@@ -315,6 +377,8 @@ body {
   gap: 12px;
   position: relative;
   z-index: 100;
+  /* 确保工具栏在标题栏下方 */
+  margin-top: 0;
 }
 
 /* 导航按钮组 */
@@ -522,8 +586,12 @@ webview {
 
 /* 响应式设计 */
 @media (max-width: 768px) {
-  .title-bar {
-    height: 44px;
+  .chrome-title-bar {
+    height: 40px;
+  }
+  
+  #app {
+    padding-top: 40px; /* 匹配移动端标题栏高度 */
   }
   
   .browser-toolbar {
@@ -537,13 +605,13 @@ webview {
   }
   
   .tab {
-    min-width: 100px;
-    max-width: 180px;
-    padding: 0 8px;
+    min-width: 80px;
+    max-width: 160px;
+    padding: 0 12px 0 8px;
   }
   
   .tab-title {
-    font-size: 12px;
+    font-size: 11px;
   }
   
   .url-container {

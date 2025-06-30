@@ -24,7 +24,22 @@ function createWindow() {
       webviewTag: true // 启用 webview 标签支持
     },
     // icon: path.join(__dirname, '../assets/icon.png'), // 如果有图标的话
-    titleBarStyle: 'default',
+    
+    // 自定义标题栏配置 - 根据 Electron 官方文档
+    titleBarStyle: 'hidden', // 隐藏默认标题栏
+    // 在 Windows/Linux 上显示窗口控制按钮
+    ...(process.platform !== 'darwin' ? { 
+      titleBarOverlay: {
+        color: '#1a202c', // 深色背景，匹配 dark 主题
+        symbolColor: '#e2e8f0', // 浅色图标
+        height: 36 // 与我们的标题栏高度匹配
+      }
+    } : {}),
+    // macOS 上自定义红绿灯位置
+    ...(process.platform === 'darwin' ? {
+      trafficLightPosition: { x: 16, y: 10 }
+    } : {}),
+    
     show: false // 先不显示，等待ready-to-show事件
   })
 

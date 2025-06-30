@@ -1,8 +1,8 @@
 <template>
   <div id="app" :class="`theme-${currentTheme}`">
-    <!-- 顶部标签栏（类似Chrome） -->
-    <div class="title-bar">
-      <!-- 标签页容器 -->
+    <!-- 顶部标题栏 - Chrome风格 -->
+    <div class="chrome-title-bar">
+      <!-- 标签页容器（占据大部分空间） -->
       <div class="tabs-container">
         <div 
           v-for="(tab, index) in tabs" 
@@ -16,35 +16,35 @@
             class="tab-favicon"
             @error="onFaviconError(tab)"
           />
-          <Globe v-else :size="16" class="tab-icon" />
+          <Globe v-else :size="14" class="tab-icon" />
           <span class="tab-title">{{ tab.title || '新标签页' }}</span>
           <button 
             @click.stop="closeTab(index)" 
             class="close-tab-btn"
             v-if="tabs.length > 1"
           >
-            <X :size="14" />
+            <X :size="12" />
           </button>
         </div>
         
         <!-- 新建标签按钮 -->
         <button @click="addTab" class="new-tab-btn" title="新建标签页">
-          <Plus :size="16" />
+          <Plus :size="14" />
         </button>
       </div>
       
-      <!-- 窗口控制按钮区域 -->
+      <!-- 窗口控制按钮区域（紧凑设计） -->
       <div class="window-controls">
         <button @click="goHome" class="control-btn home-btn" title="回到首页">
-          <Home :size="16" />
+          <Home :size="14" />
         </button>
         <button @click="openSettings" class="control-btn settings-btn" title="设置">
-          <Settings :size="16" />
+          <Settings :size="14" />
         </button>
       </div>
     </div>
 
-    <!-- 浏览器工具栏 -->
+    <!-- 浏览器工具栏（集成到一行） -->
     <div class="browser-toolbar">
       <div class="navigation-buttons">
         <button 
