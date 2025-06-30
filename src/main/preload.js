@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onGoBack: (callback) => ipcRenderer.on('go-back', callback),
   onGoForward: (callback) => ipcRenderer.on('go-forward', callback),
   onReload: (callback) => ipcRenderer.on('reload', callback),
+  onOpenUrlInCurrentTab: (callback) => ipcRenderer.on('open-url-in-current-tab', callback),
   
   // 移除监听器
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel)

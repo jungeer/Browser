@@ -56,10 +56,30 @@ function createWindow() {
     mainWindow = null
   })
 
-  // 处理外部链接
-  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    shell.openExternal(url)
+  // 处理外部链接 - 在当前客户端中打开而不是外部浏览器
+  mainWindow.webContents.setWindowOpenHandler(({ url, frameName, features }) => {
+    console.log('🚫 主进程拦截新窗口请求:', url)
+    
+    // 过滤无效的 URL
+    if (url && url !== 'about:blank' && !url.startsWith('javascript:') && !url.startsWith('data:')) {
+      // 通知渲染进程在当前标签页中打开新 URL
+      mainWindow.webContents.send('open-url-in-current-tab', url)
+    }
+    
     return { action: 'deny' }
+  })
+
+  // 监听所有的 webContents 创建，确保每个 webview 也有相同的处理
+  mainWindow.webContents.on('did-attach-webview', (event, webContents) => {
+    webContents.setWindowOpenHandler(({ url }) => {
+      console.log('🚫 WebView 拦截新窗口请求:', url)
+      
+      if (url && url !== 'about:blank' && !url.startsWith('javascript:') && !url.startsWith('data:')) {
+        mainWindow.webContents.send('open-url-in-current-tab', url)
+      }
+      
+      return { action: 'deny' }
+    })
   })
 }
 

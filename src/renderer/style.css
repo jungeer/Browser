@@ -198,8 +198,8 @@ body {
   position: relative;
   overflow: hidden; /* 防止内容溢出 */
   min-height: 0; /* 确保 flex 子项可以收缩 */
-  height: calc(100vh - 110px); /* 精确计算：总高度 - 工具栏(50px) - 标签页(36px) - 状态栏(24px) */
-  max-height: calc(100vh - 110px);
+  display: flex; /* 使用 flex 布局确保子元素正确填充 */
+  width: 100%;
 }
 
 .webview {
@@ -207,12 +207,8 @@ body {
   height: 100% !important;
   border: none;
   display: block !important; /* 确保 webview 作为块级元素显示 */
-  object-fit: fill; /* 确保内容填充整个容器 */
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  flex: 1; /* 使用 flex 填充整个容器 */
+  min-height: 0; /* 确保可以收缩 */
 }
 
 /* 修复 webview 内部 iframe 样式 */
@@ -220,15 +216,12 @@ webview {
   width: 100% !important;
   height: 100% !important;
   display: block !important;
-  position: absolute !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
   margin: 0 !important;
   padding: 0 !important;
   border: none !important;
   outline: none !important;
+  flex: 1 !important; /* 使用 flex 布局 */
+  min-height: 0 !important;
 }
 
 webview iframe {
@@ -252,6 +245,7 @@ webview::part(inner-iframe) {
 webview[style] {
   width: 100% !important;
   height: 100% !important;
+  flex: 1 !important;
 }
 
 /* 状态栏样式 */
