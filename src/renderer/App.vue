@@ -225,7 +225,7 @@ const isMouseInside = ref(true)
 const hideTimeout = ref(null)
 
 // 主题相关状态
-const currentTheme = ref('ocean')
+const currentTheme = ref('dark')
 
 // 计算属性
 const isSecure = computed(() => {
@@ -774,7 +774,7 @@ const getThemeDisplayName = (themeName) => {
 }
 
 // 应用主题
-const applyTheme = (themeName = 'ocean') => {
+const applyTheme = (themeName = 'dark') => {
   console.log('🎨 应用主题:', themeName)
   currentTheme.value = themeName
   
@@ -887,7 +887,7 @@ const loadSettings = async () => {
       hideOpacity.value = settings.hideOpacity || 0.1
       
       // 应用主题设置
-      const savedTheme = settings.currentTheme || localStorage.getItem('browser-theme') || 'ocean'
+      const savedTheme = settings.currentTheme || localStorage.getItem('browser-theme') || 'dark'
       applyTheme(savedTheme)
       
       // 应用透明度设置
@@ -903,7 +903,7 @@ const loadSettings = async () => {
       statusText.value = '个性化设置已应用'
     } else {
       // 使用默认设置，但仍然检查是否有单独保存的主题
-      const savedTheme = localStorage.getItem('browser-theme') || 'ocean'
+      const savedTheme = localStorage.getItem('browser-theme') || 'dark'
       applyTheme(savedTheme)
       statusText.value = '已为您设置默认风格'
     }
@@ -911,7 +911,7 @@ const loadSettings = async () => {
     console.error('❌ 加载设置失败:', err)
     statusText.value = '设置恢复遇到问题'
     // 即使加载失败，也应用默认主题
-    applyTheme('ocean')
+    applyTheme('dark')
   }
 }
 
@@ -944,7 +944,7 @@ const checkOnlineStatus = () => {
 // 生命周期钩子
 onMounted(async () => {
   // 首先应用主题，避免闪烁
-  const savedTheme = localStorage.getItem('browser-theme') || 'ocean'
+  const savedTheme = localStorage.getItem('browser-theme') || 'dark'
   applyTheme(savedTheme)
   
   setupElectronListeners()
