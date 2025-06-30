@@ -1,5 +1,49 @@
 <template>
-  <div id="app">
+  <div id="app" :class="`theme-${currentTheme}`">
+    <!-- 顶部标签栏（类似Chrome） -->
+    <div class="title-bar">
+      <!-- 标签页容器 -->
+      <div class="tabs-container">
+        <div 
+          v-for="(tab, index) in tabs" 
+          :key="tab.id"
+          :class="['tab', { active: activeTabIndex === index }]"
+          @click="switchTab(index)"
+        >
+          <img 
+            v-if="tab.favicon" 
+            :src="tab.favicon" 
+            class="tab-favicon"
+            @error="onFaviconError(tab)"
+          />
+          <Globe v-else :size="16" class="tab-icon" />
+          <span class="tab-title">{{ tab.title || '新标签页' }}</span>
+          <button 
+            @click.stop="closeTab(index)" 
+            class="close-tab-btn"
+            v-if="tabs.length > 1"
+          >
+            <X :size="14" />
+          </button>
+        </div>
+        
+        <!-- 新建标签按钮 -->
+        <button @click="addTab" class="new-tab-btn" title="新建标签页">
+          <Plus :size="16" />
+        </button>
+      </div>
+      
+      <!-- 窗口控制按钮区域 -->
+      <div class="window-controls">
+        <button @click="goHome" class="control-btn home-btn" title="回到首页">
+          <Home :size="16" />
+        </button>
+        <button @click="openSettings" class="control-btn settings-btn" title="设置">
+          <Settings :size="16" />
+        </button>
+      </div>
+    </div>
+
     <!-- 浏览器工具栏 -->
     <div class="browser-toolbar">
       <div class="navigation-buttons">
@@ -9,7 +53,7 @@
           class="nav-btn"
           title="后退"
         >
-          ←
+          <ArrowLeft :size="18" />
         </button>
         <button 
           @click="goForward" 
@@ -17,52 +61,51 @@
           class="nav-btn"
           title="前进"
         >
-          →
+          <ArrowRight :size="18" />
         </button>
         <button 
           @click="reload" 
           class="nav-btn"
           title="刷新"
         >
-          ↻
+          <RotateCcw :size="18" />
         </button>
       </div>
       
       <div class="address-bar">
-        <input 
-          ref="addressInput"
-          v-model="currentUrl" 
-          @keyup.enter="navigate"
-          placeholder="输入网址或搜索..."
-          class="url-input"
-        />
+        <div class="url-container">
+          <Shield 
+            v-if="isSecure" 
+            :size="16" 
+            class="security-icon secure" 
+          />
+          <AlertTriangle 
+            v-else-if="!isLocal" 
+            :size="16" 
+            class="security-icon insecure" 
+          />
+          <input 
+            ref="addressInput"
+            v-model="currentUrl" 
+            @keyup.enter="navigate"
+            @focus="onAddressFocus"
+            @blur="onAddressBlur"
+            placeholder="搜索或输入网址"
+            class="url-input"
+          />
+        </div>
         <button @click="navigate" class="go-btn">
-          {{ currentUrl.trim() && currentUrl.includes('.') && !currentUrl.includes(' ') && !currentUrl.match(/\s/) ? '跳转' : '搜索' }}
+          <Search v-if="!isValidUrl(currentUrl)" :size="16" />
+          <ArrowRight v-else :size="16" />
         </button>
       </div>
       
-      <div class="tab-controls">
-        <button @click="goHome" class="home-btn" title="回到首页">🏠</button>
-        <button @click="openSettings" class="settings-btn" title="设置">⚙️</button>
-        <button @click="addTab" class="tab-btn" title="新建标签页">+</button>
-      </div>
-    </div>
-    
-    <!-- 标签页 -->
-    <div class="tabs-container">
-      <div 
-        v-for="(tab, index) in tabs" 
-        :key="tab.id"
-        :class="['tab', { active: activeTabIndex === index }]"
-        @click="switchTab(index)"
-      >
-        <span class="tab-title">{{ tab.title || '新标签页' }}</span>
-        <button 
-          @click.stop="closeTab(index)" 
-          class="close-tab-btn"
-          v-if="tabs.length > 1"
-        >
-          ×
+      <div class="toolbar-actions">
+        <button @click="toggleBookmark" class="action-btn bookmark-btn" title="收藏">
+          <Star :size="18" :fill="isBookmarked ? 'currentColor' : 'none'" />
+        </button>
+        <button @click="showMenu" class="action-btn menu-btn" title="菜单">
+          <MoreVertical :size="18" />
         </button>
       </div>
     </div>
@@ -89,6 +132,7 @@
           class="webview"
           @dom-ready="onWebviewReady"
           @page-title-updated="onTitleUpdated"
+          @page-favicon-updated="onFaviconUpdated"
           @did-navigate="onNavigate"
           @did-navigate-in-page="onNavigateInPage"
           @new-window="onNewWindow"
@@ -103,8 +147,15 @@
     
     <!-- 状态栏 -->
     <div class="status-bar">
-      <span class="status-text">{{ statusText }}</span>
-      <span class="app-info">星辰浏览器 v{{ appVersion }}</span>
+      <div class="status-left">
+        <Wifi :size="14" v-if="isOnline" class="status-icon" />
+        <WifiOff :size="14" v-else class="status-icon offline" />
+        <span class="status-text">{{ statusText }}</span>
+      </div>
+      <div class="status-right">
+        <Clock :size="14" class="status-icon" />
+        <span class="app-info">星辰浏览器 v{{ appVersion }}</span>
+      </div>
     </div>
     
     <!-- 设置面板 -->
@@ -122,7 +173,25 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, reactive, onMounted, onUnmounted, nextTick, computed } from 'vue'
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  RotateCcw, 
+  Home, 
+  Settings, 
+  Plus, 
+  X, 
+  Globe, 
+  Search, 
+  Shield, 
+  AlertTriangle, 
+  Star, 
+  MoreVertical,
+  Wifi,
+  WifiOff,
+  Clock
+} from 'lucide-vue-next'
 import HomePage from './components/HomePage.vue'
 import SettingsPanel from './components/SettingsPanel.vue'
 
@@ -132,7 +201,8 @@ const tabs = reactive([
   {
     id: Date.now(),
     url: 'home://',
-    title: '星辰首页'
+    title: '星辰首页',
+    favicon: null
   }
 ])
 const activeTabIndex = ref(0)
@@ -141,6 +211,8 @@ const canGoForward = ref(false)
 const statusText = ref('星辰为您点亮')
 const appVersion = ref('1.0.0')
 const addressInput = ref(null)
+const isOnline = ref(true)
+const isBookmarked = ref(false)
 
 // 设置相关状态
 const showSettings = ref(false)
@@ -155,166 +227,227 @@ const hideTimeout = ref(null)
 // 主题相关状态
 const currentTheme = ref('ocean')
 
-    // 获取当前活动标签页
-    const getCurrentTab = () => tabs[activeTabIndex.value]
+// 计算属性
+const isSecure = computed(() => {
+  const url = getCurrentTab()?.url || ''
+  return url.startsWith('https://') || url === 'home://'
+})
+
+const isLocal = computed(() => {
+  const url = getCurrentTab()?.url || ''
+  return url === 'home://' || url.startsWith('file://')
+})
+
+const isValidUrl = (url) => {
+  if (!url || !url.trim()) return false
+  const trimmed = url.trim()
+  return trimmed.includes('.') && !trimmed.includes(' ') && !trimmed.match(/\s/)
+}
+
+// 获取当前活动标签页
+const getCurrentTab = () => tabs[activeTabIndex.value]
+
+// 获取当前 webview
+const getCurrentWebview = () => {
+  const tab = getCurrentTab()
+  if (tab) {
+    const webviews = document.querySelectorAll('webview')
+    return Array.from(webviews).find(wv => wv.style.display !== 'none')
+  }
+  return null
+}
+
+// 获取网站favicon
+const getFavicon = (url) => {
+  try {
+    const urlObj = new URL(url)
+    const domain = urlObj.hostname
+    // 使用Google的favicon服务
+    return `https://www.google.com/s2/favicons?domain=${domain}&sz=32`
+  } catch (e) {
+    return null
+  }
+}
+
+// Favicon更新处理
+const onFaviconUpdated = (event) => {
+  const tab = getCurrentTab()
+  if (tab && event.favicons && event.favicons.length > 0) {
+    tab.favicon = event.favicons[0]
+  } else if (tab && tab.url !== 'home://') {
+    // 如果没有favicon，尝试使用Google服务获取
+    tab.favicon = getFavicon(tab.url)
+  }
+}
+
+// Favicon错误处理
+const onFaviconError = (tab) => {
+  tab.favicon = null
+}
+
+// 地址栏焦点处理
+const onAddressFocus = () => {
+  if (addressInput.value) {
+    addressInput.value.select()
+  }
+}
+
+const onAddressBlur = () => {
+  // 失去焦点时显示当前页面URL
+  const tab = getCurrentTab()
+  if (tab && tab.url !== 'home://') {
+    currentUrl.value = tab.url
+  }
+}
+
+// 导航功能
+const navigate = () => {
+  let url = currentUrl.value.trim()
+  if (!url) return
+
+  console.log('🚀 开始导航:', url)
+
+  let finalUrl = url
+  let isSearch = false
+
+  // 如果不是完整的 URL，则添加协议或作为搜索处理
+  if (!url.match(/^https?:\/\//)) {
+    if (url.includes('.') && !url.includes(' ') && !url.match(/\s/)) {
+      // 看起来像域名，添加https协议
+      finalUrl = 'https://' + url
+      console.log('🌐 识别为网址，添加协议:', finalUrl)
+    } else {
+      // 作为搜索处理
+      finalUrl = `https://www.google.com/search?q=${encodeURIComponent(url)}`
+      isSearch = true
+      console.log('🔍 识别为搜索词，使用Google搜索:', finalUrl)
+    }
+  }
+
+  const currentTab = getCurrentTab()
+  if (currentTab) {
+    // 更新标签页URL
+    currentTab.url = finalUrl
+    currentUrl.value = finalUrl
+    statusText.value = isSearch ? '星辰正在为您搜索...' : '星辰正在为您导航...'
     
-    // 获取当前 webview
-    const getCurrentWebview = () => {
-      const tab = getCurrentTab()
-      if (tab) {
-        const webviews = document.querySelectorAll('webview')
-        return Array.from(webviews).find(wv => wv.style.display !== 'none')
-      }
-      return null
-    }
-
-    // 导航功能
-    const navigate = () => {
-      let url = currentUrl.value.trim()
-      if (!url) return
-
-      console.log('🚀 开始导航:', url)
-
-      let finalUrl = url
-      let isSearch = false
-
-      // 如果不是完整的 URL，则添加协议或作为搜索处理
-      if (!url.match(/^https?:\/\//)) {
-        if (url.includes('.') && !url.includes(' ') && !url.match(/\s/)) {
-          // 看起来像域名，添加https协议
-          finalUrl = 'https://' + url
-          console.log('🌐 识别为网址，添加协议:', finalUrl)
-        } else {
-          // 作为搜索处理
-          finalUrl = `https://www.google.com/search?q=${encodeURIComponent(url)}`
-          isSearch = true
-          console.log('🔍 识别为搜索词，使用Google搜索:', finalUrl)
-        }
-      }
-
-      const currentTab = getCurrentTab()
-      if (currentTab) {
-        // 更新标签页URL
-        currentTab.url = finalUrl
-        currentUrl.value = finalUrl
-        statusText.value = isSearch ? '星辰正在为您搜索...' : '星辰正在为您导航...'
-        
-        // 强制webview导航到新URL
-        nextTick(() => {
-          const webview = getCurrentWebview()
-          if (webview) {
-            console.log('📱 使用现有webview导航到:', finalUrl)
-            webview.loadURL(finalUrl)
-          } else {
-            console.log('🆕 将创建新webview加载:', finalUrl)
-          }
-        })
-        
-        console.log('✅ 导航完成:', finalUrl)
-      }
-    }
-
-    // 后退
-    const goBack = () => {
-      const webview = getCurrentWebview()
-      if (webview && webview.canGoBack()) {
-        webview.goBack()
-      }
-    }
-
-    // 前进
-    const goForward = () => {
-      const webview = getCurrentWebview()
-      if (webview && webview.canGoForward()) {
-        webview.goForward()
-      }
-    }
-
-    // 刷新
-    const reload = () => {
+    // 强制webview导航到新URL
+    nextTick(() => {
       const webview = getCurrentWebview()
       if (webview) {
-        webview.reload()
-        statusText.value = '正在为您刷新页面...'
+        console.log('📱 使用现有webview导航到:', finalUrl)
+        webview.loadURL(finalUrl)
+      } else {
+        console.log('🆕 将创建新webview加载:', finalUrl)
       }
-    }
+    })
+    
+    console.log('✅ 导航完成:', finalUrl)
+  }
+}
 
-    // 添加新标签页
-    const addTab = () => {
-      const newTab = {
-        id: Date.now(),
-        url: 'home://',
-        title: '新的探索'
-      }
-      tabs.push(newTab)
-      activeTabIndex.value = tabs.length - 1
-      currentUrl.value = newTab.url
-      
-      // 聚焦地址栏
-      nextTick(() => {
-        if (addressInput.value) {
-          addressInput.value.focus()
-          addressInput.value.select()
-        }
-        
-        // 为新标签页的 webview 注入保护脚本（稍后触发）
-        setTimeout(() => {
-          const currentWebview = getCurrentWebview()
-          if (currentWebview) {
-            injectLinkInterceptionScript(currentWebview)
-          }
-        }, 1000)
-      })
-    }
+// 后退
+const goBack = () => {
+  const webview = getCurrentWebview()
+  if (webview && webview.canGoBack()) {
+    webview.goBack()
+  }
+}
 
-    // 回到首页
-    const goHome = () => {
-      const currentTab = getCurrentTab()
-      if (currentTab) {
-        currentTab.url = 'home://'
-        currentTab.title = '星辰首页'
-        currentUrl.value = 'home://'
-        statusText.value = '欢迎回到星辰首页'
-      }
-    }
+// 前进
+const goForward = () => {
+  const webview = getCurrentWebview()
+  if (webview && webview.canGoForward()) {
+    webview.goForward()
+  }
+}
 
-    // 处理首页导航
-    const handleHomeNavigate = (url) => {
-      const currentTab = getCurrentTab()
-      if (currentTab) {
-        currentTab.url = url
-        currentUrl.value = url
-        statusText.value = '星辰正在为您打开链接...'
-        
-        // 延迟注入保护脚本
-        setTimeout(() => {
-          const currentWebview = getCurrentWebview()
-          if (currentWebview) {
-            injectLinkInterceptionScript(currentWebview)
-          }
-        }, 1000)
-      }
-    }
+// 刷新
+const reload = () => {
+  const webview = getCurrentWebview()
+  if (webview) {
+    webview.reload()
+    statusText.value = '正在为您刷新页面...'
+  }
+}
 
-    // 关闭标签页
-    const closeTab = (index) => {
-      if (tabs.length <= 1) return
-      
-      tabs.splice(index, 1)
-      
-      // 调整活动标签页索引
-      if (activeTabIndex.value >= index) {
-        activeTabIndex.value = Math.max(0, activeTabIndex.value - 1)
-      }
-      
-      // 更新地址栏
-      const currentTab = getCurrentTab()
-      if (currentTab) {
-        currentUrl.value = currentTab.url
-      }
+// 添加新标签页
+const addTab = () => {
+  const newTab = {
+    id: Date.now(),
+    url: 'home://',
+    title: '新的探索',
+    favicon: null
+  }
+  tabs.push(newTab)
+  activeTabIndex.value = tabs.length - 1
+  currentUrl.value = newTab.url
+  
+  // 聚焦地址栏
+  nextTick(() => {
+    if (addressInput.value) {
+      addressInput.value.focus()
+      addressInput.value.select()
     }
+    
+    // 为新标签页的 webview 注入保护脚本（稍后触发）
+    setTimeout(() => {
+      const currentWebview = getCurrentWebview()
+      if (currentWebview) {
+        injectLinkInterceptionScript(currentWebview)
+      }
+    }, 1000)
+  })
+}
 
-    // 切换标签页
+// 回到首页
+const goHome = () => {
+  const currentTab = getCurrentTab()
+  if (currentTab) {
+    currentTab.url = 'home://'
+    currentTab.title = '星辰首页'
+    currentUrl.value = 'home://'
+    statusText.value = '欢迎回到星辰首页'
+  }
+}
+
+// 处理首页导航
+const handleHomeNavigate = (url) => {
+  const currentTab = getCurrentTab()
+  if (currentTab) {
+    currentTab.url = url
+    currentUrl.value = url
+    statusText.value = '星辰正在为您打开链接...'
+    
+    // 延迟注入保护脚本
+    setTimeout(() => {
+      const currentWebview = getCurrentWebview()
+      if (currentWebview) {
+        injectLinkInterceptionScript(currentWebview)
+      }
+    }, 1000)
+  }
+}
+
+// 关闭标签页
+const closeTab = (index) => {
+  if (tabs.length <= 1) return
+  
+  tabs.splice(index, 1)
+  
+  // 调整活动标签页索引
+  if (activeTabIndex.value >= index) {
+    activeTabIndex.value = Math.max(0, activeTabIndex.value - 1)
+  }
+  
+  // 更新地址栏
+  const currentTab = getCurrentTab()
+  if (currentTab) {
+    currentUrl.value = currentTab.url
+  }
+}
+
+// 切换标签页
 const switchTab = (index) => {
   activeTabIndex.value = index
   const currentTab = getCurrentTab()
@@ -334,210 +467,210 @@ const switchTab = (index) => {
   })
 }
 
-    // 更新导航按钮状态
-    const updateNavigationState = () => {
-      const webview = getCurrentWebview()
-      if (webview) {
-        canGoBack.value = webview.canGoBack()
-        canGoForward.value = webview.canGoForward()
-      }
-    }
+// 更新导航按钮状态
+const updateNavigationState = () => {
+  const webview = getCurrentWebview()
+  if (webview) {
+    canGoBack.value = webview.canGoBack()
+    canGoForward.value = webview.canGoForward()
+  }
+}
 
-    // 链接拦截脚本注入函数
-    const injectLinkInterceptionScript = (webview) => {
-      if (!webview) return
-      
-      try {
-        // 注入脚本来拦截所有可能的新窗口打开方式
-        webview.executeJavaScript(`
-          (function() {
-            // 检查是否已经注入过，避免重复注入
-            if (window.__linkInterceptionInjected) {
-              return;
-            }
-            window.__linkInterceptionInjected = true;
-            
-            // 1. 拦截 window.open
-            const originalOpen = window.open;
-            window.open = function(url, name, features) {
-              console.log('🚫 拦截 window.open:', url);
-              // 阻止新窗口打开，在当前页面导航
-              if (url && url !== 'about:blank' && !url.startsWith('javascript:')) {
-                window.location.href = url;
+// 链接拦截脚本注入函数
+const injectLinkInterceptionScript = (webview) => {
+  if (!webview) return
+  
+  try {
+    // 注入脚本来拦截所有可能的新窗口打开方式
+    webview.executeJavaScript(`
+      (function() {
+        // 检查是否已经注入过，避免重复注入
+        if (window.__linkInterceptionInjected) {
+          return;
+        }
+        window.__linkInterceptionInjected = true;
+        
+        // 1. 拦截 window.open
+        const originalOpen = window.open;
+        window.open = function(url, name, features) {
+          console.log('🚫 拦截 window.open:', url);
+          // 阻止新窗口打开，在当前页面导航
+          if (url && url !== 'about:blank' && !url.startsWith('javascript:')) {
+            window.location.href = url;
+          }
+          return null;
+        };
+        
+        // 2. 拦截所有 target="_blank" 的链接
+        document.addEventListener('click', function(e) {
+          const link = e.target.closest('a');
+          if (link && link.href) {
+            const target = link.getAttribute('target');
+            if (target === '_blank' || target === '_new') {
+              console.log('🚫 拦截 target="_blank" 链接:', link.href);
+              e.preventDefault();
+              e.stopPropagation();
+              // 在当前页面打开
+              if (!link.href.startsWith('javascript:')) {
+                window.location.href = link.href;
               }
-              return null;
-            };
-            
-            // 2. 拦截所有 target="_blank" 的链接
-            document.addEventListener('click', function(e) {
-              const link = e.target.closest('a');
-              if (link && link.href) {
-                const target = link.getAttribute('target');
-                if (target === '_blank' || target === '_new') {
-                  console.log('🚫 拦截 target="_blank" 链接:', link.href);
-                  e.preventDefault();
-                  e.stopPropagation();
-                  // 在当前页面打开
-                  if (!link.href.startsWith('javascript:')) {
-                    window.location.href = link.href;
-                  }
-                  return false;
+              return false;
+            }
+          }
+        }, true);
+        
+        // 3. 拦截动态创建的链接
+        const originalCreateElement = document.createElement;
+        document.createElement = function(tagName) {
+          const element = originalCreateElement.call(this, tagName);
+          if (tagName.toLowerCase() === 'a') {
+            element.addEventListener('click', function(e) {
+              if (this.target === '_blank' || this.target === '_new') {
+                console.log('🚫 拦截动态链接:', this.href);
+                e.preventDefault();
+                if (this.href && !this.href.startsWith('javascript:')) {
+                  window.location.href = this.href;
                 }
               }
-            }, true);
-            
-            // 3. 拦截动态创建的链接
-            const originalCreateElement = document.createElement;
-            document.createElement = function(tagName) {
-              const element = originalCreateElement.call(this, tagName);
-              if (tagName.toLowerCase() === 'a') {
-                element.addEventListener('click', function(e) {
-                  if (this.target === '_blank' || this.target === '_new') {
-                    console.log('🚫 拦截动态链接:', this.href);
-                    e.preventDefault();
-                    if (this.href && !this.href.startsWith('javascript:')) {
-                      window.location.href = this.href;
-                    }
-                  }
-                });
-              }
-              return element;
-            };
-            
-            // 4. 监听并拦截任何表单的 target="_blank"
-            document.addEventListener('submit', function(e) {
-              const form = e.target;
-              if (form.target === '_blank' || form.target === '_new') {
-                console.log('🚫 拦截表单 target="_blank"');
-                form.target = '_self';
-              }
-            }, true);
-            
-            // 5. 全局拦截所有 window.open 的变体
-            window.addEventListener('beforeunload', function(e) {
-              // 这里可以添加额外的清理逻辑
             });
-            
-            console.log('🛡️ 链接拦截脚本已加载');
-          })();
-        `).catch(err => {
-          console.log('无法注入链接拦截脚本:', err)
-        })
-      } catch (err) {
-        console.log('executeJavaScript 不可用:', err)
-      }
-    }
+          }
+          return element;
+        };
+        
+        // 4. 监听并拦截任何表单的 target="_blank"
+        document.addEventListener('submit', function(e) {
+          const form = e.target;
+          if (form.target === '_blank' || form.target === '_new') {
+            console.log('🚫 拦截表单 target="_blank"');
+            form.target = '_self';
+          }
+        }, true);
+        
+        // 5. 全局拦截所有 window.open 的变体
+        window.addEventListener('beforeunload', function(e) {
+          // 这里可以添加额外的清理逻辑
+        });
+        
+        console.log('🛡️ 链接拦截脚本已加载');
+      })();
+    `).catch(err => {
+      console.log('无法注入链接拦截脚本:', err)
+    })
+  } catch (err) {
+    console.log('executeJavaScript 不可用:', err)
+  }
+}
 
-    // Webview 事件处理
+// Webview 事件处理
 const onWebviewReady = (event) => {
-        statusText.value = '页面已完美呈现'
+  statusText.value = '页面已完美呈现'
   updateNavigationState()
   
   // 注入链接拦截脚本
   injectLinkInterceptionScript(event.target)
 }
 
-    const onTitleUpdated = (event) => {
-      const currentTab = getCurrentTab()
-      if (currentTab) {
-        currentTab.title = event.title || '无标题'
-      }
-    }
+const onTitleUpdated = (event) => {
+  const currentTab = getCurrentTab()
+  if (currentTab) {
+    currentTab.title = event.title || '无标题'
+  }
+}
 
-    const onNavigate = (event) => {
-      const currentTab = getCurrentTab()
-      if (currentTab) {
-        currentTab.url = event.url
-        currentUrl.value = event.url
-      }
-      updateNavigationState()
-    }
+const onNavigate = (event) => {
+  const currentTab = getCurrentTab()
+  if (currentTab) {
+    currentTab.url = event.url
+    currentUrl.value = event.url
+  }
+  updateNavigationState()
+}
 
-    const onNavigateInPage = (event) => {
-      onNavigate(event)
-    }
+const onNavigateInPage = (event) => {
+  onNavigate(event)
+}
 
-    // 处理导航前的事件（额外保护层）
-    const onWillNavigate = (event) => {
-      // 允许正常的页面导航，但记录日志
-      console.log('🔗 即将导航到:', event.url)
-    }
+// 处理导航前的事件（额外保护层）
+const onWillNavigate = (event) => {
+  // 允许正常的页面导航，但记录日志
+  console.log('🔗 即将导航到:', event.url)
+}
 
-    // 处理新窗口请求（防止弹窗，在当前标签页打开）
-    const onNewWindow = (event) => {
-      console.log('🚫 拦截新窗口请求:', event.url)
-      event.preventDefault()
+// 处理新窗口请求（防止弹窗，在当前标签页打开）
+const onNewWindow = (event) => {
+  console.log('🚫 拦截新窗口请求:', event.url)
+  event.preventDefault()
+  
+  // 在当前标签页中打开新 URL
+  const currentTab = getCurrentTab()
+  if (currentTab && event.url) {
+    // 检查 URL 是否有效
+    if (event.url && event.url !== 'about:blank' && !event.url.startsWith('javascript:')) {
+      currentTab.url = event.url
+      currentUrl.value = event.url
+      statusText.value = '星辰正在为您打开新页面...'
       
-      // 在当前标签页中打开新 URL
-      const currentTab = getCurrentTab()
-      if (currentTab && event.url) {
-        // 检查 URL 是否有效
-        if (event.url && event.url !== 'about:blank' && !event.url.startsWith('javascript:')) {
-          currentTab.url = event.url
-          currentUrl.value = event.url
-          statusText.value = '星辰正在为您打开新页面...'
-          
-          // 强制webview导航到新URL
-          nextTick(() => {
-            const webview = getCurrentWebview()
-            if (webview) {
-              webview.loadURL(event.url)
-            }
-          })
+      // 强制webview导航到新URL
+      nextTick(() => {
+        const webview = getCurrentWebview()
+        if (webview) {
+          webview.loadURL(event.url)
         }
-      }
+      })
     }
+  }
+}
 
-    // Electron API 事件监听
-    const setupElectronListeners = () => {
-      if (window.electronAPI) {
-        // 监听菜单事件
-        window.electronAPI.onNewTab(() => addTab())
-        window.electronAPI.onCloseTab(() => closeTab(activeTabIndex.value))
-        window.electronAPI.onGoBack(() => goBack())
-        window.electronAPI.onGoForward(() => goForward())
-        window.electronAPI.onReload(() => reload())
+// Electron API 事件监听
+const setupElectronListeners = () => {
+  if (window.electronAPI) {
+    // 监听菜单事件
+    window.electronAPI.onNewTab(() => addTab())
+    window.electronAPI.onCloseTab(() => closeTab(activeTabIndex.value))
+    window.electronAPI.onGoBack(() => goBack())
+    window.electronAPI.onGoForward(() => goForward())
+    window.electronAPI.onReload(() => reload())
+    
+    // 监听在当前标签页打开 URL 的事件
+    window.electronAPI.onOpenUrlInCurrentTab((event, url) => {
+      const currentTab = getCurrentTab()
+      if (currentTab && url) {
+        currentTab.url = url
+        currentUrl.value = url
+        statusText.value = '星辰正在响应您的请求...'
         
-        // 监听在当前标签页打开 URL 的事件
-        window.electronAPI.onOpenUrlInCurrentTab((event, url) => {
-          const currentTab = getCurrentTab()
-          if (currentTab && url) {
-            currentTab.url = url
-            currentUrl.value = url
-            statusText.value = '星辰正在响应您的请求...'
-            
-            // 强制webview导航到新URL
-            nextTick(() => {
-              const webview = getCurrentWebview()
-              if (webview) {
-                webview.loadURL(url)
-              }
-            })
+        // 强制webview导航到新URL
+        nextTick(() => {
+          const webview = getCurrentWebview()
+          if (webview) {
+            webview.loadURL(url)
           }
         })
-        
-        // 获取应用版本
-        window.electronAPI.getAppVersion().then(version => {
-          appVersion.value = version
-        }).catch(err => {
-          console.log('获取应用版本失败:', err)
-        })
       }
-    }
+    })
+    
+    // 获取应用版本
+    window.electronAPI.getAppVersion().then(version => {
+      appVersion.value = version
+    }).catch(err => {
+      console.log('获取应用版本失败:', err)
+    })
+  }
+}
 
-    // 清理事件监听器
-    const cleanupElectronListeners = () => {
-      if (window.electronAPI) {
-        window.electronAPI.removeAllListeners('new-tab')
-        window.electronAPI.removeAllListeners('close-tab')
-        window.electronAPI.removeAllListeners('go-back')
-        window.electronAPI.removeAllListeners('go-forward')
-        window.electronAPI.removeAllListeners('reload')
-        window.electronAPI.removeAllListeners('open-url-in-current-tab')
-      }
-    }
+// 清理事件监听器
+const cleanupElectronListeners = () => {
+  if (window.electronAPI) {
+    window.electronAPI.removeAllListeners('new-tab')
+    window.electronAPI.removeAllListeners('close-tab')
+    window.electronAPI.removeAllListeners('go-back')
+    window.electronAPI.removeAllListeners('go-forward')
+    window.electronAPI.removeAllListeners('reload')
+    window.electronAPI.removeAllListeners('open-url-in-current-tab')
+  }
+}
 
-    // 处理窗口大小变化
+// 处理窗口大小变化
 const handleResize = () => {
   // 由于使用了 flexbox 布局，webview 会自动调整尺寸
   // 这里保留函数以备将来扩展需要
@@ -792,6 +925,22 @@ const loadCurrentSettings = () => {
   }
 }
 
+// 书签功能
+const toggleBookmark = () => {
+  isBookmarked.value = !isBookmarked.value
+  statusText.value = isBookmarked.value ? '已添加到收藏' : '已取消收藏'
+}
+
+// 显示菜单
+const showMenu = () => {
+  statusText.value = '功能菜单即将推出'
+}
+
+// 网络状态检测
+const checkOnlineStatus = () => {
+  isOnline.value = navigator.onLine
+}
+
 // 生命周期钩子
 onMounted(async () => {
   // 首先应用主题，避免闪烁
@@ -802,6 +951,11 @@ onMounted(async () => {
   
   // 监听窗口大小变化
   window.addEventListener('resize', handleResize)
+  
+  // 监听网络状态
+  window.addEventListener('online', checkOnlineStatus)
+  window.addEventListener('offline', checkOnlineStatus)
+  checkOnlineStatus()
   
   // 等待 electronAPI 可用后再加载设置
   if (window.electronAPI) {
@@ -826,6 +980,8 @@ onMounted(async () => {
 onUnmounted(() => {
   cleanupElectronListeners()
   window.removeEventListener('resize', handleResize)
+  window.removeEventListener('online', checkOnlineStatus)
+  window.removeEventListener('offline', checkOnlineStatus)
   removeMouseListeners()
   saveSettings()
 })
