@@ -102,7 +102,7 @@
     <!-- 状态栏 -->
     <div class="status-bar">
       <span class="status-text">{{ statusText }}</span>
-      <span class="app-info">Vue Electron Browser v{{ appVersion }}</span>
+      <span class="app-info">星辰浏览器 v{{ appVersion }}</span>
     </div>
     
     <!-- 设置面板 -->
@@ -130,13 +130,13 @@ const tabs = reactive([
   {
     id: Date.now(),
     url: 'home://',
-    title: '首页'
+    title: '星辰首页'
   }
 ])
 const activeTabIndex = ref(0)
 const canGoBack = ref(false)
 const canGoForward = ref(false)
-const statusText = ref('就绪')
+const statusText = ref('星辰为您点亮')
 const appVersion = ref('1.0.0')
 const addressInput = ref(null)
 
@@ -184,7 +184,7 @@ const currentTheme = ref('ocean')
       const currentTab = getCurrentTab()
       if (currentTab) {
         currentTab.url = url
-        statusText.value = '正在加载...'
+        statusText.value = '星辰正在为您导航...'
       }
     }
 
@@ -209,7 +209,7 @@ const currentTheme = ref('ocean')
       const webview = getCurrentWebview()
       if (webview) {
         webview.reload()
-        statusText.value = '正在刷新...'
+        statusText.value = '正在为您刷新页面...'
       }
     }
 
@@ -218,7 +218,7 @@ const currentTheme = ref('ocean')
       const newTab = {
         id: Date.now(),
         url: 'home://',
-        title: '新标签页'
+        title: '新的探索'
       }
       tabs.push(newTab)
       activeTabIndex.value = tabs.length - 1
@@ -246,9 +246,9 @@ const currentTheme = ref('ocean')
       const currentTab = getCurrentTab()
       if (currentTab) {
         currentTab.url = 'home://'
-        currentTab.title = '首页'
+        currentTab.title = '星辰首页'
         currentUrl.value = 'home://'
-        statusText.value = '已回到首页'
+        statusText.value = '欢迎回到星辰首页'
       }
     }
 
@@ -258,7 +258,7 @@ const currentTheme = ref('ocean')
       if (currentTab) {
         currentTab.url = url
         currentUrl.value = url
-        statusText.value = '正在加载...'
+        statusText.value = '星辰正在为您打开链接...'
         
         // 延迟注入保护脚本
         setTimeout(() => {
@@ -404,7 +404,7 @@ const switchTab = (index) => {
 
     // Webview 事件处理
 const onWebviewReady = (event) => {
-  statusText.value = '页面加载完成'
+        statusText.value = '页面已完美呈现'
   updateNavigationState()
   
   // 注入链接拦截脚本
@@ -444,14 +444,14 @@ const onWebviewReady = (event) => {
       
       // 在当前标签页中打开新 URL
       const currentTab = getCurrentTab()
-      if (currentTab && event.url) {
-        // 检查 URL 是否有效
-        if (event.url && event.url !== 'about:blank' && !event.url.startsWith('javascript:')) {
-          currentTab.url = event.url
-          currentUrl.value = event.url
-          statusText.value = '正在加载...'
+              if (currentTab && event.url) {
+          // 检查 URL 是否有效
+          if (event.url && event.url !== 'about:blank' && !event.url.startsWith('javascript:')) {
+            currentTab.url = event.url
+            currentUrl.value = event.url
+            statusText.value = '星辰正在为您打开新页面...'
+          }
         }
-      }
     }
 
     // Electron API 事件监听
@@ -470,7 +470,7 @@ const onWebviewReady = (event) => {
           if (currentTab && url) {
             currentTab.url = url
             currentUrl.value = url
-            statusText.value = '正在加载...'
+            statusText.value = '星辰正在响应您的请求...'
           }
         })
         
@@ -519,17 +519,17 @@ const updateWindowOpacity = async (opacity) => {
       const result = await window.electronAPI.setWindowOpacity(opacity)
       if (result && !result.success) {
         console.error('❌ 透明度设置失败:', result.error)
-        statusText.value = `透明度设置失败: ${result.error}`
+        statusText.value = `透明效果调整遇到问题`
       } else {
-        statusText.value = `透明度已设置为 ${Math.round(opacity * 100)}%`
+        statusText.value = `透明效果已调至 ${Math.round(opacity * 100)}%`
       }
     } catch (err) {
       console.error('❌ 透明度设置异常:', err)
-      statusText.value = '透明度设置失败'
+      statusText.value = '透明效果暂时无法调整'
     }
   } else {
     console.error('❌ electronAPI 不可用')
-    statusText.value = 'electronAPI 不可用'
+    statusText.value = '系统暂时无法响应'
   }
 }
 
@@ -538,13 +538,13 @@ const updateMouseHide = (enabled) => {
   
   if (enabled) {
     setupMouseListeners()
-    statusText.value = '鼠标隐藏功能已启用'
+    statusText.value = '智能隐身模式已开启'
   } else {
     removeMouseListeners()
     // 恢复正常透明度
     if (window.electronAPI) {
       window.electronAPI.setWindowOpacity(windowOpacity.value)
-      statusText.value = '鼠标隐藏功能已关闭'
+      statusText.value = '智能隐身模式已关闭'
     }
   }
 }
@@ -595,7 +595,7 @@ const getThemeDisplayName = (themeName) => {
     dark: '深夜黑',
     cherry: '樱花粉'
   }
-  return themeNames[themeName] || '未知'
+  return themeNames[themeName] || '经典'
 }
 
 // 应用主题
@@ -632,7 +632,7 @@ const handleMouseEnter = () => {
   
   if (mouseHideEnabled.value && window.electronAPI) {
     window.electronAPI.setWindowOpacity(windowOpacity.value)
-    statusText.value = '鼠标已进入窗口'
+    statusText.value = '星辰为您重新点亮'
   }
 }
 
@@ -642,7 +642,7 @@ const handleMouseLeave = () => {
     hideTimeout.value = setTimeout(() => {
       if (!isMouseInside.value && window.electronAPI) {
         window.electronAPI.setWindowOpacity(hideOpacity.value)
-        statusText.value = '鼠标已离开窗口'
+        statusText.value = '星辰进入隐身模式'
       }
     }, hideDelay.value)
   }
@@ -694,10 +694,10 @@ const saveSettings = () => {
       currentTheme: currentTheme.value
     }
     localStorage.setItem('browserSettings', JSON.stringify(settings))
-    statusText.value = '设置已保存'
+    statusText.value = '个性化设置已保存'
   } catch (err) {
     console.error('❌ 保存设置失败:', err)
-    statusText.value = '设置保存失败'
+    statusText.value = '设置保存遇到问题'
   }
 }
 
@@ -725,16 +725,16 @@ const loadSettings = async () => {
         setupMouseListeners()
       }
       
-      statusText.value = '设置已加载'
+      statusText.value = '个性化设置已应用'
     } else {
       // 使用默认设置，但仍然检查是否有单独保存的主题
       const savedTheme = localStorage.getItem('browser-theme') || 'ocean'
       applyTheme(savedTheme)
-      statusText.value = '使用默认设置'
+      statusText.value = '已为您设置默认风格'
     }
   } catch (err) {
     console.error('❌ 加载设置失败:', err)
-    statusText.value = '设置加载失败'
+    statusText.value = '设置恢复遇到问题'
     // 即使加载失败，也应用默认主题
     applyTheme('ocean')
   }
@@ -772,7 +772,7 @@ onMounted(async () => {
         await loadSettings()
       } else {
         console.error('❌ electronAPI 仍然不可用')
-        statusText.value = 'electronAPI 不可用'
+        statusText.value = '系统正在初始化，请稍候'
       }
     }, 1000)
   }

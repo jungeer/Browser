@@ -3,9 +3,9 @@
     <div class="home-container">
       <!-- 主Logo区域 -->
       <div class="logo-section">
-        <div class="logo float-animation">🌐</div>
-        <h1 class="title">Vue Electron Browser</h1>
-        <p class="subtitle">现代化玻璃态浏览器</p>
+        <div class="logo float-animation">⭐</div>
+        <h1 class="title">星辰浏览器</h1>
+        <p class="subtitle">探索无限可能的智能浏览体验</p>
       </div>
       
       <!-- 搜索区域 -->
@@ -27,7 +27,7 @@
       
       <!-- 快速访问区域 -->
       <div class="quick-links">
-        <h3 class="section-title">快速访问</h3>
+        <h3 class="section-title">精选网站</h3>
         <div class="links-grid">
           <div 
             v-for="link in quickLinks" 
@@ -46,31 +46,31 @@
       <div class="feature-cards">
         <div class="feature-card glass-card">
           <div class="feature-icon">⚡</div>
-          <h4>极速加载</h4>
-          <p>基于 Chromium 内核，享受极速浏览体验</p>
+          <h4>闪电般快速</h4>
+          <p>毫秒级响应，让等待成为过去</p>
         </div>
         <div class="feature-card glass-card">
           <div class="feature-icon">🎨</div>
-          <h4>美观界面</h4>
-          <p>玻璃态设计，多主题色彩可选</p>
+          <h4>颜值即正义</h4>
+          <p>六款精美主题，总有一款适合你</p>
         </div>
         <div class="feature-card glass-card">
           <div class="feature-icon">🔒</div>
-          <h4>安全隐私</h4>
-          <p>注重用户隐私，安全浏览保护</p>
+          <h4>隐私守护者</h4>
+          <p>你的数据，只属于你自己</p>
         </div>
       </div>
       
       <!-- 底部信息 -->
       <div class="footer">
         <div class="footer-content glass-surface">
-          <p>© 2024 Vue Electron Browser - 专注于现代化浏览体验</p>
+          <p>© 2024 星辰浏览器 - 让每一次浏览都成为探索</p>
           <div class="footer-links">
-            <span @click="navigateTo('https://github.com')" class="footer-link">GitHub</span>
+            <span @click="navigateTo('https://www.microsoft.com')" class="footer-link">微软</span>
             <span>•</span>
-            <span @click="navigateTo('https://vuejs.org')" class="footer-link">Vue.js</span>
+            <span @click="navigateTo('https://www.apple.com')" class="footer-link">苹果</span>
             <span>•</span>
-            <span @click="navigateTo('https://electronjs.org')" class="footer-link">Electron</span>
+            <span @click="navigateTo('https://www.google.com')" class="footer-link">谷歌</span>
           </div>
         </div>
       </div>

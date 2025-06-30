@@ -93,14 +93,14 @@ function createMenu() {
       label: '文件',
       submenu: [
         {
-          label: '新建标签页',
+          label: '开启新探索',
           accelerator: 'CmdOrCtrl+T',
           click: () => {
             mainWindow.webContents.send('new-tab')
           }
         },
         {
-          label: '关闭标签页',
+          label: '结束当前页面',
           accelerator: 'CmdOrCtrl+W',
           click: () => {
             mainWindow.webContents.send('close-tab')
@@ -128,24 +128,24 @@ function createMenu() {
       ]
     },
     {
-      label: '导航',
+      label: '浏览',
       submenu: [
         {
-          label: '后退',
+          label: '返回上一页',
           accelerator: 'Alt+Left',
           click: () => {
             mainWindow.webContents.send('go-back')
           }
         },
         {
-          label: '前进',
+          label: '前往下一页',
           accelerator: 'Alt+Right',
           click: () => {
             mainWindow.webContents.send('go-forward')
           }
         },
         {
-          label: '刷新',
+          label: '刷新页面',
           accelerator: 'CmdOrCtrl+R',
           click: () => {
             mainWindow.webContents.send('reload')
@@ -156,22 +156,21 @@ function createMenu() {
     {
       label: '视图',
       submenu: [
-        { label: '重新加载', accelerator: 'CmdOrCtrl+R', role: 'reload' },
-        { label: '强制重新加载', accelerator: 'CmdOrCtrl+Shift+R', role: 'forceReload' },
-        { label: '切换开发者工具', accelerator: 'F12', role: 'toggleDevTools' },
+        { label: '刷新页面', accelerator: 'CmdOrCtrl+R', role: 'reload' },
+        { label: '强制刷新', accelerator: 'CmdOrCtrl+Shift+R', role: 'forceReload' },
         { type: 'separator' },
-        { label: '实际大小', accelerator: 'CmdOrCtrl+0', role: 'resetZoom' },
-        { label: '放大', accelerator: 'CmdOrCtrl+Plus', role: 'zoomIn' },
-        { label: '缩小', accelerator: 'CmdOrCtrl+-', role: 'zoomOut' },
+        { label: '原始大小', accelerator: 'CmdOrCtrl+0', role: 'resetZoom' },
+        { label: '放大显示', accelerator: 'CmdOrCtrl+Plus', role: 'zoomIn' },
+        { label: '缩小显示', accelerator: 'CmdOrCtrl+-', role: 'zoomOut' },
         { type: 'separator' },
-        { label: '全屏', accelerator: 'F11', role: 'togglefullscreen' }
+        { label: '全屏模式', accelerator: 'F11', role: 'togglefullscreen' }
       ]
     },
     {
       label: '帮助',
       submenu: [
         {
-          label: '关于',
+          label: '关于星辰浏览器',
           click: () => {
             // 可以在这里添加关于对话框
             shell.showItemInFolder(__filename)

@@ -1,7 +1,7 @@
 {
-  "name": "vue-electron-browser",
+  "name": "stellar-browser",
   "version": "1.0.0",
-  "description": "一个基于 Electron 和 Vue3 的简单浏览器客户端",
+  "description": "星辰浏览器 - 为现代用户打造的智能浏览体验",
   "main": "src/main/main.js",
   "scripts": {
     "dev": "node scripts/simple-dev.js",
@@ -15,12 +15,13 @@
     "dist": "electron-builder"
   },
   "keywords": [
-    "electron",
-    "vue3",
     "browser",
-    "desktop-app"
+    "fast",
+    "secure",
+    "modern",
+    "smart"
   ],
-  "author": "Your Name",
+  "author": "Stellar Team",
   "license": "MIT",
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.0.0",
@@ -35,8 +36,8 @@
     "vue": "^3.3.8"
   },
   "build": {
-    "appId": "com.vue-electron-browser.app",
-    "productName": "Vue Electron Browser",
+    "appId": "com.stellarbrowser.app",
+    "productName": "星辰浏览器",
     "directories": {
       "output": "dist"
     },

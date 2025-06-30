@@ -4,21 +4,21 @@
     <div class="settings-content glass-card">
       <!-- 设置头部 -->
       <div class="settings-header">
-        <div class="header-icon">⚙️</div>
-        <h3>浏览器设置</h3>
+        <div class="header-icon">✨</div>
+        <h3>个性化设置</h3>
         <button @click="closeSettings" class="close-btn glass-button">×</button>
       </div>
       
       <div class="settings-body">
-        <!-- 主题设置区域 -->
-        <div class="setting-section">
-          <h4 class="section-title">🎨 外观主题</h4>
+                 <!-- 主题设置区域 -->
+         <div class="setting-section">
+           <h4 class="section-title">🎨 视觉风格</h4>
           
-          <!-- 主题色选择 -->
-          <div class="setting-group">
-            <label class="setting-label">
-              <span class="label-text">主题色彩</span>
-            </label>
+                     <!-- 主题色选择 -->
+           <div class="setting-group">
+             <label class="setting-label">
+               <span class="label-text">色彩风格</span>
+             </label>
             <div class="theme-selector">
               <div 
                 v-for="(theme, name) in availableThemes" 
@@ -35,44 +35,44 @@
             </div>
           </div>
           
-          <!-- 界面风格选择 -->
-          <div class="setting-group">
-            <label class="setting-label">
-              <span class="label-text">界面风格</span>
-            </label>
-            <div class="style-selector">
-              <div 
-                :class="['style-option', { active: uiStyle === 'glass' }]"
-                @click="selectStyle('glass')"
-              >
-                <div class="style-preview glass-surface">
-                  <div class="preview-content">Glass</div>
-                </div>
-                <span>玻璃态</span>
-              </div>
-              <div 
-                :class="['style-option', { active: uiStyle === 'neu' }]"
-                @click="selectStyle('neu')"
-              >
-                <div class="style-preview neu-surface">
-                  <div class="preview-content">Neu</div>
-                </div>
-                <span>拟物化</span>
-              </div>
-            </div>
-          </div>
+                     <!-- 界面风格选择 -->
+           <div class="setting-group">
+             <label class="setting-label">
+               <span class="label-text">视觉效果</span>
+             </label>
+             <div class="style-selector">
+               <div 
+                 :class="['style-option', { active: uiStyle === 'glass' }]"
+                 @click="selectStyle('glass')"
+               >
+                 <div class="style-preview glass-surface">
+                   <div class="preview-content">轻盈</div>
+                 </div>
+                 <span>透明质感</span>
+               </div>
+               <div 
+                 :class="['style-option', { active: uiStyle === 'neu' }]"
+                 @click="selectStyle('neu')"
+               >
+                 <div class="style-preview neu-surface">
+                   <div class="preview-content">立体</div>
+                 </div>
+                 <span>立体质感</span>
+               </div>
+             </div>
+           </div>
         </div>
         
-        <!-- 窗口设置区域 -->
-        <div class="setting-section">
-          <h4 class="section-title">🪟 窗口设置</h4>
-          
-          <!-- 透明度设置 -->
-          <div class="setting-group">
-            <label class="setting-label">
-              <span class="label-text">窗口透明度</span>
-              <span class="label-value">{{ Math.round(opacity * 100) }}%</span>
-            </label>
+                 <!-- 窗口设置区域 -->
+         <div class="setting-section">
+           <h4 class="section-title">🪟 窗口效果</h4>
+           
+           <!-- 透明度设置 -->
+           <div class="setting-group">
+             <label class="setting-label">
+               <span class="label-text">透明效果</span>
+               <span class="label-value">{{ Math.round(opacity * 100) }}%</span>
+             </label>
             <div class="slider-container">
               <input 
                 type="range" 
@@ -94,17 +94,17 @@
             </div>
           </div>
           
-          <!-- 鼠标隐藏功能 -->
-          <div class="setting-group">
-            <label class="setting-label">
-              <span class="label-text">鼠标离开时隐藏</span>
-              <div class="modern-toggle" :class="{ active: mouseHideEnabled }" @click="toggleMouseHide">
-                <div class="toggle-thumb"></div>
-                <div class="toggle-bg"></div>
-              </div>
-            </label>
-            <p class="setting-description">启用后，鼠标离开窗口时浏览器会变得半透明</p>
-          </div>
+                     <!-- 鼠标隐藏功能 -->
+           <div class="setting-group">
+             <label class="setting-label">
+               <span class="label-text">智能隐身</span>
+               <div class="modern-toggle" :class="{ active: mouseHideEnabled }" @click="toggleMouseHide">
+                 <div class="toggle-thumb"></div>
+                 <div class="toggle-bg"></div>
+               </div>
+             </label>
+             <p class="setting-description">鼠标离开时自动隐身，专注不受打扰</p>
+           </div>
           
           <!-- 隐藏延迟设置 -->
           <div v-if="mouseHideEnabled" class="setting-group">
@@ -157,51 +157,51 @@
           </div>
         </div>
         
-        <!-- 高级设置区域 -->
-        <div class="setting-section">
-          <h4 class="section-title">⚡ 高级设置</h4>
-          
-          <div class="setting-group">
-            <label class="setting-label">
-              <span class="label-text">硬件加速</span>
-              <div class="modern-toggle active">
-                <div class="toggle-thumb"></div>
-                <div class="toggle-bg"></div>
-              </div>
-            </label>
-            <p class="setting-description">启用 GPU 硬件加速以提升性能</p>
-          </div>
-          
-          <div class="setting-group">
-            <label class="setting-label">
-              <span class="label-text">自动隐藏菜单栏</span>
-              <div class="modern-toggle">
-                <div class="toggle-thumb"></div>
-                <div class="toggle-bg"></div>
-              </div>
-            </label>
-            <p class="setting-description">按 Alt 键显示菜单栏</p>
-          </div>
-        </div>
+                 <!-- 高级设置区域 -->
+         <div class="setting-section">
+           <h4 class="section-title">⚡ 体验优化</h4>
+           
+           <div class="setting-group">
+             <label class="setting-label">
+               <span class="label-text">极速模式</span>
+               <div class="modern-toggle active">
+                 <div class="toggle-thumb"></div>
+                 <div class="toggle-bg"></div>
+               </div>
+             </label>
+             <p class="setting-description">开启后获得更加流畅的浏览体验</p>
+           </div>
+           
+           <div class="setting-group">
+             <label class="setting-label">
+               <span class="label-text">沉浸模式</span>
+               <div class="modern-toggle">
+                 <div class="toggle-thumb"></div>
+                 <div class="toggle-bg"></div>
+               </div>
+             </label>
+             <p class="setting-description">自动隐藏工具栏，享受纯净视野</p>
+           </div>
+         </div>
       </div>
       
       <!-- 设置底部 -->
       <div class="settings-footer">
         <button @click="testTheme" class="action-btn glass-button">
           <span class="btn-icon">🎨</span>
-          测试主题
+          预览主题
         </button>
         <button @click="testOpacity" class="action-btn glass-button">
-          <span class="btn-icon">🧪</span>
-          测试透明度
+          <span class="btn-icon">✨</span>
+          预览效果
         </button>
         <button @click="resetSettings" class="action-btn glass-button secondary">
           <span class="btn-icon">🔄</span>
-          重置默认
+          恢复默认
         </button>
         <button @click="closeSettings" class="action-btn glass-button primary">
-          <span class="btn-icon">💾</span>
-          保存设置
+          <span class="btn-icon">💫</span>
+          应用设置
         </button>
       </div>
     </div>
