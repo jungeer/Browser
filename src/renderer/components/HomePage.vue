@@ -30,14 +30,22 @@
         <h3 class="section-title">精选网站</h3>
         <div class="links-grid">
           <div 
-            v-for="link in quickLinks" 
+            v-for="(link, index) in quickLinks" 
             :key="link.name"
             @click="navigateTo(link.url)" 
             class="quick-link glass-card"
           >
-            <div class="link-icon">{{ link.icon }}</div>
+            <div 
+              class="link-icon-container"
+              :style="{ 
+                background: link.bgColor,
+                animationDelay: `${index * 0.3}s`
+              }"
+            >
+              <div class="link-icon" :style="{ color: 'white' }">{{ link.icon }}</div>
+            </div>
             <span class="link-name">{{ link.name }}</span>
-            <div class="link-hover-effect"></div>
+            <div class="link-hover-effect" :style="{ background: link.bgColor }"></div>
           </div>
         </div>
       </div>
@@ -93,14 +101,62 @@ const searchInput = ref(null)
 
 // 快速链接数据
 const quickLinks = ref([
-  { name: '百度', url: 'https://www.baidu.com', icon: '🅱️' },
-  { name: 'Google', url: 'https://www.google.com', icon: '🔍' },
-  { name: 'GitHub', url: 'https://www.github.com', icon: '📦' },
-  { name: '知乎', url: 'https://www.zhihu.com', icon: '🎯' },
-  { name: '哔哩哔哩', url: 'https://www.bilibili.com', icon: '📺' },
-  { name: '微博', url: 'https://www.weibo.com', icon: '🐦' },
-  { name: 'YouTube', url: 'https://www.youtube.com', icon: '📹' },
-  { name: 'Twitter', url: 'https://www.twitter.com', icon: '🐦' }
+  { 
+    name: '百度', 
+    url: 'https://www.baidu.com', 
+    icon: '百',
+    color: '#2932E1',
+    bgColor: 'linear-gradient(135deg, #2932E1, #2E5BFF)'
+  },
+  { 
+    name: 'Google', 
+    url: 'https://www.google.com', 
+    icon: 'G',
+    color: '#4285F4',
+    bgColor: 'linear-gradient(135deg, #4285F4, #34A853, #FBBC05, #EA4335)'
+  },
+  { 
+    name: 'GitHub', 
+    url: 'https://www.github.com', 
+    icon: '<>',
+    color: '#24292f',
+    bgColor: 'linear-gradient(135deg, #24292f, #57606a)'
+  },
+  { 
+    name: '知乎', 
+    url: 'https://www.zhihu.com', 
+    icon: '知',
+    color: '#0084FF',
+    bgColor: 'linear-gradient(135deg, #0084FF, #00A1FF)'
+  },
+  { 
+    name: '哔哩哔哩', 
+    url: 'https://www.bilibili.com', 
+    icon: 'B',
+    color: '#FB7299',
+    bgColor: 'linear-gradient(135deg, #FB7299, #FF8DC7)'
+  },
+  { 
+    name: '微博', 
+    url: 'https://www.weibo.com', 
+    icon: '微',
+    color: '#E6162D',
+    bgColor: 'linear-gradient(135deg, #E6162D, #FF4757)'
+  },
+  { 
+    name: 'YouTube', 
+    url: 'https://www.youtube.com', 
+    icon: '▶',
+    color: '#FF0000',
+    bgColor: 'linear-gradient(135deg, #FF0000, #FF4444)'
+  },
+  { 
+    name: 'Twitter', 
+    url: 'https://www.twitter.com', 
+    icon: 'X',
+    color: '#000000',
+    bgColor: 'linear-gradient(135deg, #000000, #333333)'
+  }
 ])
 
 // 定义 emits
@@ -258,30 +314,67 @@ onMounted(() => {
   
   .links-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 1.5rem;
-    max-width: 800px;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1.2rem;
+    max-width: 700px;
     margin: 0 auto;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    
+    @media (max-width: 480px) {
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.8rem;
+    }
   }
   
   .quick-link {
     position: relative;
     padding: 1.5rem 1rem;
-    border-radius: 16px;
+    border-radius: 20px;
     cursor: pointer;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
     
-    .link-icon {
-      font-size: 2rem;
-      margin-bottom: 0.8rem;
-      display: block;
+         .link-icon-container {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      position: relative;
+      box-shadow: 
+        0 4px 20px rgba(0, 0, 0, 0.1),
+        0 1px 3px rgba(0, 0, 0, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      animation: iconFloat 3s ease-in-out infinite;
+      
+      .link-icon {
+        font-size: 1.4rem;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        letter-spacing: -0.02em;
+        transform: translateZ(0);
+      }
     }
     
     .link-name {
-      font-size: 0.9rem;
-      font-weight: 500;
+      font-size: 0.85rem;
+      font-weight: 600;
       color: var(--theme-text);
+      text-align: center;
+      opacity: 0.9;
     }
     
     .link-hover-effect {
@@ -290,15 +383,42 @@ onMounted(() => {
       left: 0;
       right: 0;
       bottom: 0;
-      background: linear-gradient(135deg, var(--theme-accent), var(--theme-primary));
       opacity: 0;
       transition: opacity 0.3s ease;
       z-index: -1;
+      border-radius: 20px;
     }
     
     &:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.15),
+        0 4px 12px rgba(0, 0, 0, 0.1);
+      
+      .link-icon-container {
+        transform: scale(1.1);
+        box-shadow: 
+          0 8px 30px rgba(0, 0, 0, 0.2),
+          0 2px 6px rgba(0, 0, 0, 0.3),
+          inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        animation-play-state: paused;
+      }
+      
       .link-hover-effect {
-        opacity: 0.1;
+        opacity: 0.05;
+      }
+      
+      .link-name {
+        opacity: 1;
+        color: var(--theme-text);
+      }
+    }
+    
+    &:active {
+      transform: translateY(-2px) scale(1.01);
+      
+      .link-icon-container {
+        transform: scale(1.05);
       }
     }
   }
@@ -465,6 +585,25 @@ onMounted(() => {
   
   &:hover {
     background: rgba(255, 255, 255, 0.5);
+  }
+}
+
+// 动画关键帧
+@keyframes iconFloat {
+  0%, 100% {
+    transform: translateY(0px) rotateZ(0deg);
+  }
+  50% {
+    transform: translateY(-3px) rotateZ(1deg);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
   }
 }
 </style> 
