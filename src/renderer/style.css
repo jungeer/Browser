@@ -104,14 +104,14 @@ body {
   gap: 5px;
 }
 
-.tab-btn {
+.tab-btn, .home-btn, .settings-btn {
   width: 32px;
   height: 32px;
   border: 1px solid #ccc;
   background: #fff;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
   display: flex;
   align-items: center;
@@ -119,9 +119,22 @@ body {
   transition: all 0.2s;
 }
 
-.tab-btn:hover {
+.tab-btn:hover, .home-btn:hover, .settings-btn:hover {
   background: #e9e9e9;
   border-color: #bbb;
+  transform: scale(1.05);
+}
+
+.home-btn {
+  font-size: 14px;
+}
+
+.settings-btn {
+  font-size: 14px;
+}
+
+.tab-btn {
+  font-size: 18px;
 }
 
 /* 标签页容器样式 */

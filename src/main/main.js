@@ -14,6 +14,7 @@ function createWindow() {
     height: 800,
     minWidth: 800,
     minHeight: 600,
+    transparent: false, // 设为 false，使用 setOpacity 方法控制透明度
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -184,10 +185,83 @@ function createMenu() {
   Menu.setApplicationMenu(menu)
 }
 
+/**
+ * 设置 IPC 处理器
+ */
+function setupIPCHandlers() {
+  console.log('🔧 正在注册 IPC 处理器...')
+
+  // IPC 事件处理
+  ipcMain.handle('get-app-version', () => {
+    console.log('📦 获取应用版本')
+    return app.getVersion()
+  })
+
+  // 设置窗口透明度
+  ipcMain.handle('set-window-opacity', (event, opacity) => {
+    console.log('🎨 主进程收到设置透明度请求:', opacity)
+    try {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        const clampedOpacity = Math.max(0.1, Math.min(1.0, opacity))
+        mainWindow.setOpacity(clampedOpacity)
+        console.log('✅ 透明度设置成功:', clampedOpacity)
+        return { success: true, opacity: clampedOpacity }
+      }
+      console.log('❌ 窗口不可用')
+      return { success: false, error: '窗口不可用' }
+    } catch (err) {
+      console.error('❌ 设置透明度失败:', err)
+      return { success: false, error: err.message }
+    }
+  })
+
+  // 获取窗口透明度
+  ipcMain.handle('get-window-opacity', () => {
+    try {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        const opacity = mainWindow.getOpacity()
+        console.log('📊 当前透明度:', opacity)
+        return { success: true, opacity }
+      }
+      return { success: false, opacity: 1.0 }
+    } catch (err) {
+      console.error('❌ 获取透明度失败:', err)
+      return { success: false, opacity: 1.0 }
+    }
+  })
+
+  // 设置窗口总是在顶部
+  ipcMain.handle('set-always-on-top', (event, flag) => {
+    console.log('📌 设置窗口置顶:', flag)
+    try {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.setAlwaysOnTop(flag)
+        console.log('✅ 窗口置顶设置成功:', flag)
+        return { success: true }
+      }
+      console.log('❌ 窗口不可用')
+      return { success: false, error: '窗口不可用' }
+    } catch (err) {
+      console.error('❌ 设置窗口置顶失败:', err)
+      return { success: false, error: err.message }
+    }
+  })
+
+  console.log('✅ IPC 处理器注册完成')
+}
+
 // 当 Electron 完成初始化并准备创建浏览器窗口时调用此方法
 app.whenReady().then(() => {
+  console.log('🚀 应用程序启动中...')
+  
+  // 首先设置 IPC 处理器
+  setupIPCHandlers()
+  
+  // 然后创建窗口和菜单
   createWindow()
   createMenu()
+
+  console.log('✅ 应用程序启动完成')
 
   app.on('activate', () => {
     // 在 macOS 上，当点击 dock 图标并且没有其他窗口打开时，
@@ -205,11 +279,6 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
   }
-})
-
-// IPC 事件处理
-ipcMain.handle('get-app-version', () => {
-  return app.getVersion()
 })
 
 // 在这个文件中，你可以包含应用的其余主进程代码

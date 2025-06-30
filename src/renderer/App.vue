@@ -40,6 +40,8 @@
       </div>
       
       <div class="tab-controls">
+        <button @click="goHome" class="home-btn" title="回到首页">🏠</button>
+        <button @click="openSettings" class="settings-btn" title="设置">⚙️</button>
         <button @click="addTab" class="tab-btn" title="新建标签页">+</button>
       </div>
     </div>
@@ -65,26 +67,36 @@
     
     <!-- 网页内容区域 -->
     <div class="web-content">
-      <webview
-        v-for="(tab, index) in tabs"
-        :key="tab.id"
-        :ref="`webview-${tab.id}`"
-        :src="tab.url"
-        :style="{ 
-          display: activeTabIndex === index ? 'flex' : 'none'
-        }"
-        class="webview"
-        @dom-ready="onWebviewReady"
-        @page-title-updated="onTitleUpdated"
-        @did-navigate="onNavigate"
-        @did-navigate-in-page="onNavigateInPage"
-        @new-window="onNewWindow"
-        @will-navigate="onWillNavigate"
-        allowpopups="false"
-        disablewebsecurity
-        nodeintegration="false"
-        webpreferences="contextIsolation=true,nativeWindowOpen=false"
-      ></webview>
+      <!-- 首页组件 -->
+      <template v-for="(tab, index) in tabs" :key="`home-${tab.id}`">
+        <HomePage 
+          v-if="tab.url === 'home://' && activeTabIndex === index"
+          @navigate="handleHomeNavigate"
+        />
+      </template>
+      
+      <!-- WebView 组件 -->
+      <template v-for="(tab, index) in tabs" :key="tab.id">
+        <webview
+          v-if="tab.url !== 'home://'"
+          :ref="`webview-${tab.id}`"
+          :src="tab.url"
+          :style="{ 
+            display: activeTabIndex === index ? 'flex' : 'none'
+          }"
+          class="webview"
+          @dom-ready="onWebviewReady"
+          @page-title-updated="onTitleUpdated"
+          @did-navigate="onNavigate"
+          @did-navigate-in-page="onNavigateInPage"
+          @new-window="onNewWindow"
+          @will-navigate="onWillNavigate"
+          allowpopups="false"
+          disablewebsecurity
+          nodeintegration="false"
+          webpreferences="contextIsolation=true,nativeWindowOpen=false"
+        ></webview>
+      </template>
     </div>
     
     <!-- 状态栏 -->
@@ -92,19 +104,32 @@
       <span class="status-text">{{ statusText }}</span>
       <span class="app-info">Vue Electron Browser v{{ appVersion }}</span>
     </div>
+    
+    <!-- 设置面板 -->
+    <SettingsPanel 
+      :visible="showSettings"
+      @close="closeSettings"
+      @update:opacity="updateWindowOpacity"
+      @update:mouseHide="updateMouseHide"
+      @update:hideDelay="updateHideDelay"
+      @update:hideOpacity="updateHideOpacity"
+      ref="settingsPanel"
+    />
   </div>
 </template>
 
 <script setup>
 import { ref, reactive, onMounted, onUnmounted, nextTick } from 'vue'
+import HomePage from './components/HomePage.vue'
+import SettingsPanel from './components/SettingsPanel.vue'
 
 // 响应式数据
-const currentUrl = ref('https://www.google.com')
+const currentUrl = ref('home://')
 const tabs = reactive([
   {
     id: Date.now(),
-    url: 'https://www.google.com',
-    title: 'Google'
+    url: 'home://',
+    title: '首页'
   }
 ])
 const activeTabIndex = ref(0)
@@ -113,6 +138,16 @@ const canGoForward = ref(false)
 const statusText = ref('就绪')
 const appVersion = ref('1.0.0')
 const addressInput = ref(null)
+
+// 设置相关状态
+const showSettings = ref(false)
+const settingsPanel = ref(null)
+const windowOpacity = ref(1.0)
+const mouseHideEnabled = ref(false)
+const hideDelay = ref(500)
+const hideOpacity = ref(0.2)
+const isMouseInside = ref(true)
+const hideTimeout = ref(null)
 
     // 获取当前活动标签页
     const getCurrentTab = () => tabs[activeTabIndex.value]
@@ -178,7 +213,7 @@ const addressInput = ref(null)
     const addTab = () => {
       const newTab = {
         id: Date.now(),
-        url: 'https://www.google.com',
+        url: 'home://',
         title: '新标签页'
       }
       tabs.push(newTab)
@@ -200,6 +235,35 @@ const addressInput = ref(null)
           }
         }, 1000)
       })
+    }
+
+    // 回到首页
+    const goHome = () => {
+      const currentTab = getCurrentTab()
+      if (currentTab) {
+        currentTab.url = 'home://'
+        currentTab.title = '首页'
+        currentUrl.value = 'home://'
+        statusText.value = '已回到首页'
+      }
+    }
+
+    // 处理首页导航
+    const handleHomeNavigate = (url) => {
+      const currentTab = getCurrentTab()
+      if (currentTab) {
+        currentTab.url = url
+        currentUrl.value = url
+        statusText.value = '正在加载...'
+        
+        // 延迟注入保护脚本
+        setTimeout(() => {
+          const currentWebview = getCurrentWebview()
+          if (currentWebview) {
+            injectLinkInterceptionScript(currentWebview)
+          }
+        }, 1000)
+      }
     }
 
     // 关闭标签页
@@ -433,19 +497,234 @@ const handleResize = () => {
   // 这里保留函数以备将来扩展需要
 }
 
+// 设置相关方法
+const openSettings = () => {
+  showSettings.value = true
+  loadCurrentSettings()
+}
+
+const closeSettings = () => {
+  showSettings.value = false
+  saveSettings()
+}
+
+const updateWindowOpacity = async (opacity) => {
+  console.log('🎨 渲染进程请求设置透明度:', opacity)
+  windowOpacity.value = opacity
+  if (window.electronAPI) {
+    try {
+      const result = await window.electronAPI.setWindowOpacity(opacity)
+      console.log('📈 透明度设置结果:', result)
+      if (result && !result.success) {
+        console.error('❌ 透明度设置失败:', result.error)
+        statusText.value = `透明度设置失败: ${result.error}`
+      } else {
+        statusText.value = `透明度已设置为 ${Math.round(opacity * 100)}%`
+      }
+    } catch (err) {
+      console.error('❌ 透明度设置异常:', err)
+      statusText.value = '透明度设置失败'
+    }
+  } else {
+    console.error('❌ electronAPI 不可用')
+    statusText.value = 'electronAPI 不可用'
+  }
+}
+
+const updateMouseHide = (enabled) => {
+  console.log('🔄 更新鼠标隐藏功能:', enabled)
+  mouseHideEnabled.value = enabled
+  
+  if (enabled) {
+    setupMouseListeners()
+    statusText.value = '鼠标隐藏功能已启用'
+  } else {
+    removeMouseListeners()
+    // 恢复正常透明度
+    if (window.electronAPI) {
+      console.log('🌟 恢复正常透明度（功能关闭）')
+      window.electronAPI.setWindowOpacity(windowOpacity.value)
+      statusText.value = '鼠标隐藏功能已关闭'
+    }
+  }
+}
+
+const updateHideDelay = (delay) => {
+  hideDelay.value = delay
+}
+
+const updateHideOpacity = (opacity) => {
+  hideOpacity.value = opacity
+}
+
+// 鼠标事件处理
+const handleMouseEnter = () => {
+  console.log('🖱️ 鼠标进入窗口')
+  isMouseInside.value = true
+  if (hideTimeout.value) {
+    clearTimeout(hideTimeout.value)
+    hideTimeout.value = null
+  }
+  
+  if (mouseHideEnabled.value && window.electronAPI) {
+    console.log('🌟 恢复正常透明度')
+    window.electronAPI.setWindowOpacity(windowOpacity.value)
+    statusText.value = '鼠标已进入窗口'
+  }
+}
+
+const handleMouseLeave = () => {
+  console.log('🖱️ 鼠标离开窗口')
+  isMouseInside.value = false
+  if (mouseHideEnabled.value) {
+    console.log(`⏱️ ${hideDelay.value}ms 后隐藏窗口`)
+    hideTimeout.value = setTimeout(() => {
+      if (!isMouseInside.value && window.electronAPI) {
+        console.log('👻 设置隐藏透明度')
+        window.electronAPI.setWindowOpacity(hideOpacity.value)
+        statusText.value = '鼠标已离开窗口'
+      }
+    }, hideDelay.value)
+  }
+}
+
+// 使用更可靠的鼠标事件监听
+const setupMouseListeners = () => {
+  console.log('🎯 设置鼠标监听器')
+  const appElement = document.getElementById('app')
+  if (appElement) {
+    // 使用 mouseover/mouseout 代替 mouseenter/mouseleave
+    appElement.addEventListener('mouseover', handleMouseEnter, { passive: true })
+    appElement.addEventListener('mouseout', handleMouseLeave, { passive: true })
+    
+    // 额外监听窗口焦点事件作为备用
+    window.addEventListener('focus', handleMouseEnter, { passive: true })
+    window.addEventListener('blur', () => {
+      console.log('🔍 窗口失去焦点')
+      // 给一个短延迟，避免快速切换时的误触发
+      setTimeout(handleMouseLeave, 100)
+    }, { passive: true })
+  } else {
+    console.error('❌ 找不到 #app 元素')
+  }
+}
+
+const removeMouseListeners = () => {
+  console.log('🗑️ 移除鼠标监听器')
+  const appElement = document.getElementById('app')
+  if (appElement) {
+    appElement.removeEventListener('mouseover', handleMouseEnter)
+    appElement.removeEventListener('mouseout', handleMouseLeave)
+  }
+  
+  window.removeEventListener('focus', handleMouseEnter)
+  window.removeEventListener('blur', handleMouseLeave)
+  
+  if (hideTimeout.value) {
+    clearTimeout(hideTimeout.value)
+    hideTimeout.value = null
+  }
+}
+
+// 设置持久化
+const saveSettings = () => {
+  try {
+    const settings = {
+      windowOpacity: windowOpacity.value,
+      mouseHideEnabled: mouseHideEnabled.value,
+      hideDelay: hideDelay.value,
+      hideOpacity: hideOpacity.value
+    }
+    localStorage.setItem('browserSettings', JSON.stringify(settings))
+    console.log('💾 设置已保存:', settings)
+    statusText.value = '设置已保存'
+  } catch (err) {
+    console.error('❌ 保存设置失败:', err)
+    statusText.value = '设置保存失败'
+  }
+}
+
+const loadSettings = async () => {
+  console.log('📂 加载保存的设置')
+  try {
+    const saved = localStorage.getItem('browserSettings')
+    if (saved) {
+      const settings = JSON.parse(saved)
+      windowOpacity.value = settings.windowOpacity || 1.0
+      mouseHideEnabled.value = settings.mouseHideEnabled || false
+      hideDelay.value = settings.hideDelay || 500
+      hideOpacity.value = settings.hideOpacity || 0.2
+      
+      console.log('📋 载入的设置:', settings)
+      
+      // 应用透明度设置
+      if (window.electronAPI) {
+        console.log('🎨 应用保存的透明度:', windowOpacity.value)
+        const result = await window.electronAPI.setWindowOpacity(windowOpacity.value)
+        console.log('📈 透明度应用结果:', result)
+      }
+      
+      // 应用鼠标隐藏设置
+      if (mouseHideEnabled.value) {
+        console.log('🖱️ 启用鼠标隐藏功能')
+        setupMouseListeners()
+      }
+      
+      statusText.value = '设置已加载'
+    } else {
+      console.log('📋 没有找到保存的设置，使用默认值')
+      statusText.value = '使用默认设置'
+    }
+  } catch (err) {
+    console.error('❌ 加载设置失败:', err)
+    statusText.value = '设置加载失败'
+  }
+}
+
+const loadCurrentSettings = () => {
+  if (settingsPanel.value) {
+    settingsPanel.value.setOpacity(windowOpacity.value)
+    settingsPanel.value.setMouseHideEnabled(mouseHideEnabled.value)
+    settingsPanel.value.setHideDelay(hideDelay.value)
+    settingsPanel.value.setHideOpacity(hideOpacity.value)
+  }
+}
+
 // 生命周期钩子
-onMounted(() => {
+onMounted(async () => {
+  console.log('🚀 应用正在初始化...')
+  
   setupElectronListeners()
   
   // 监听窗口大小变化
   window.addEventListener('resize', handleResize)
   
+  // 等待 electronAPI 可用后再加载设置
+  if (window.electronAPI) {
+    // 加载保存的设置
+    await loadSettings()
+  } else {
+    // 如果 electronAPI 还没准备好，稍后重试
+    setTimeout(async () => {
+      if (window.electronAPI) {
+        await loadSettings()
+      } else {
+        console.error('❌ electronAPI 仍然不可用')
+        statusText.value = 'electronAPI 不可用'
+      }
+    }, 1000)
+  }
+  
   // 初始化时也调用一次
   setTimeout(handleResize, 500)
+  
+  console.log('✅ 应用初始化完成')
 })
 
 onUnmounted(() => {
   cleanupElectronListeners()
   window.removeEventListener('resize', handleResize)
+  removeMouseListeners()
+  saveSettings()
 })
 </script> 
