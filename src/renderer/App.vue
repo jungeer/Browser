@@ -113,6 +113,7 @@
       @update:mouseHide="updateMouseHide"
       @update:hideDelay="updateHideDelay"
       @update:hideOpacity="updateHideOpacity"
+      @themeChange="handleThemeChange"
       ref="settingsPanel"
     />
   </div>
@@ -148,6 +149,9 @@ const hideDelay = ref(500)
 const hideOpacity = ref(0.1)
 const isMouseInside = ref(true)
 const hideTimeout = ref(null)
+
+// 主题相关状态
+const currentTheme = ref('ocean')
 
     // 获取当前活动标签页
     const getCurrentTab = () => tabs[activeTabIndex.value]
@@ -553,6 +557,71 @@ const updateHideOpacity = (opacity) => {
   hideOpacity.value = opacity
 }
 
+// 主题切换处理
+const handleThemeChange = (themeName) => {
+  console.log('🎨 切换主题:', themeName)
+  currentTheme.value = themeName
+  
+  // 更新根元素的主题类
+  const root = document.documentElement
+  const body = document.body
+  
+  // 移除旧的主题类
+  root.className = root.className.replace(/theme-\w+/g, '')
+  body.className = body.className.replace(/theme-\w+/g, '')
+  
+  // 添加新的主题类
+  root.classList.add(`theme-${themeName}`)
+  body.classList.add(`theme-${themeName}`)
+  
+  // 保存到本地存储
+  localStorage.setItem('browser-theme', themeName)
+  statusText.value = `已切换到${getThemeDisplayName(themeName)}主题`
+  
+  console.log('✅ 主题切换完成:', {
+    themeName,
+    rootClasses: root.className,
+    bodyClasses: body.className
+  })
+}
+
+// 获取主题显示名称
+const getThemeDisplayName = (themeName) => {
+  const themeNames = {
+    ocean: '海洋蓝',
+    sunset: '夕阳橙',
+    forest: '森林绿',
+    purple: '梦幻紫',
+    dark: '深夜黑',
+    cherry: '樱花粉'
+  }
+  return themeNames[themeName] || '未知'
+}
+
+// 应用主题
+const applyTheme = (themeName = 'ocean') => {
+  console.log('🎨 应用主题:', themeName)
+  currentTheme.value = themeName
+  
+  // 更新根元素的主题类
+  const root = document.documentElement
+  const body = document.body
+  
+  // 移除旧的主题类
+  root.className = root.className.replace(/theme-\w+/g, '')
+  body.className = body.className.replace(/theme-\w+/g, '')
+  
+  // 添加新的主题类
+  root.classList.add(`theme-${themeName}`)
+  body.classList.add(`theme-${themeName}`)
+  
+  console.log('✅ 主题应用完成:', {
+    themeName,
+    rootClasses: root.className,
+    bodyClasses: body.className
+  })
+}
+
 // 鼠标事件处理
 const handleMouseEnter = () => {
   isMouseInside.value = true
@@ -621,7 +690,8 @@ const saveSettings = () => {
       windowOpacity: windowOpacity.value,
       mouseHideEnabled: mouseHideEnabled.value,
       hideDelay: hideDelay.value,
-      hideOpacity: hideOpacity.value
+      hideOpacity: hideOpacity.value,
+      currentTheme: currentTheme.value
     }
     localStorage.setItem('browserSettings', JSON.stringify(settings))
     statusText.value = '设置已保存'
@@ -641,6 +711,10 @@ const loadSettings = async () => {
       hideDelay.value = settings.hideDelay || 500
       hideOpacity.value = settings.hideOpacity || 0.1
       
+      // 应用主题设置
+      const savedTheme = settings.currentTheme || localStorage.getItem('browser-theme') || 'ocean'
+      applyTheme(savedTheme)
+      
       // 应用透明度设置
       if (window.electronAPI) {
         await window.electronAPI.setWindowOpacity(windowOpacity.value)
@@ -653,11 +727,16 @@ const loadSettings = async () => {
       
       statusText.value = '设置已加载'
     } else {
+      // 使用默认设置，但仍然检查是否有单独保存的主题
+      const savedTheme = localStorage.getItem('browser-theme') || 'ocean'
+      applyTheme(savedTheme)
       statusText.value = '使用默认设置'
     }
   } catch (err) {
     console.error('❌ 加载设置失败:', err)
     statusText.value = '设置加载失败'
+    // 即使加载失败，也应用默认主题
+    applyTheme('ocean')
   }
 }
 
@@ -667,11 +746,16 @@ const loadCurrentSettings = () => {
     settingsPanel.value.setMouseHideEnabled(mouseHideEnabled.value)
     settingsPanel.value.setHideDelay(hideDelay.value)
     settingsPanel.value.setHideOpacity(hideOpacity.value)
+    settingsPanel.value.setTheme(currentTheme.value)
   }
 }
 
 // 生命周期钩子
 onMounted(async () => {
+  // 首先应用主题，避免闪烁
+  const savedTheme = localStorage.getItem('browser-theme') || 'ocean'
+  applyTheme(savedTheme)
+  
   setupElectronListeners()
   
   // 监听窗口大小变化

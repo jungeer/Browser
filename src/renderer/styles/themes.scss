@@ -1,0 +1,328 @@
+// 主题系统 - 玻璃态与拟物化风格
+// ==========================================
+
+// 主题色彩定义
+$themes: (
+  'ocean': (
+    primary: #667eea,
+    secondary: #764ba2,
+    accent: #4facfe,
+    surface: rgba(103, 126, 234, 0.15),
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%),
+    text: #ffffff,
+    text-secondary: rgba(255, 255, 255, 0.8),
+    shadow-light: rgba(255, 255, 255, 0.25),
+    shadow-dark: rgba(0, 0, 0, 0.15)
+  ),
+  'sunset': (
+    primary: #ff6b6b,
+    secondary: #ffa726,
+    accent: #ff8a80,
+    surface: rgba(255, 107, 107, 0.15),
+    background: linear-gradient(135deg, #ff6b6b 0%, #ffa726 100%),
+    text: #ffffff,
+    text-secondary: rgba(255, 255, 255, 0.8),
+    shadow-light: rgba(255, 255, 255, 0.25),
+    shadow-dark: rgba(0, 0, 0, 0.15)
+  ),
+  'forest': (
+    primary: #4caf50,
+    secondary: #66bb6a,
+    accent: #81c784,
+    surface: rgba(76, 175, 80, 0.15),
+    background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%),
+    text: #ffffff,
+    text-secondary: rgba(255, 255, 255, 0.8),
+    shadow-light: rgba(255, 255, 255, 0.25),
+    shadow-dark: rgba(0, 0, 0, 0.15)
+  ),
+  'purple': (
+    primary: #9c27b0,
+    secondary: #ba68c8,
+    accent: #ce93d8,
+    surface: rgba(156, 39, 176, 0.15),
+    background: linear-gradient(135deg, #9c27b0 0%, #ba68c8 100%),
+    text: #ffffff,
+    text-secondary: rgba(255, 255, 255, 0.8),
+    shadow-light: rgba(255, 255, 255, 0.25),
+    shadow-dark: rgba(0, 0, 0, 0.15)
+  ),
+  'dark': (
+    primary: #2c3e50,
+    secondary: #34495e,
+    accent: #3498db,
+    surface: rgba(44, 62, 80, 0.15),
+    background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%),
+    text: #ffffff,
+    text-secondary: rgba(255, 255, 255, 0.8),
+    shadow-light: rgba(255, 255, 255, 0.1),
+    shadow-dark: rgba(0, 0, 0, 0.3)
+  ),
+  'cherry': (
+    primary: #e91e63,
+    secondary: #ad1457,
+    accent: #f06292,
+    surface: rgba(233, 30, 99, 0.15),
+    background: linear-gradient(135deg, #e91e63 0%, #ad1457 100%),
+    text: #ffffff,
+    text-secondary: rgba(255, 255, 255, 0.8),
+    shadow-light: rgba(255, 255, 255, 0.25),
+    shadow-dark: rgba(0, 0, 0, 0.15)
+  )
+);
+
+// CSS 变量根定义
+:root {
+  // 默认主题 (ocean)
+  --theme-primary: #{map-get(map-get($themes, 'ocean'), 'primary')};
+  --theme-secondary: #{map-get(map-get($themes, 'ocean'), 'secondary')};
+  --theme-accent: #{map-get(map-get($themes, 'ocean'), 'accent')};
+  --theme-surface: #{map-get(map-get($themes, 'ocean'), 'surface')};
+  --theme-background: #{map-get(map-get($themes, 'ocean'), 'background')};
+  --theme-text: #{map-get(map-get($themes, 'ocean'), 'text')};
+  --theme-text-secondary: #{map-get(map-get($themes, 'ocean'), 'text-secondary')};
+  --theme-shadow-light: #{map-get(map-get($themes, 'ocean'), 'shadow-light')};
+  --theme-shadow-dark: #{map-get(map-get($themes, 'ocean'), 'shadow-dark')};
+  
+  // 玻璃态效果变量
+  --glass-bg: rgba(255, 255, 255, 0.15);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-blur: 10px;
+  --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  
+  // 拟物化效果变量
+  --neu-distance: 20px;
+  --neu-intensity: 0.15;
+  --neu-surface: #e0e5ec;
+  --neu-highlight: #ffffff;
+  --neu-shadow: #a3b1c6;
+}
+
+// 生成主题类
+@each $theme-name, $theme-values in $themes {
+  .theme-#{$theme-name} {
+    --theme-primary: #{map-get($theme-values, 'primary')};
+    --theme-secondary: #{map-get($theme-values, 'secondary')};
+    --theme-accent: #{map-get($theme-values, 'accent')};
+    --theme-surface: #{map-get($theme-values, 'surface')};
+    --theme-background: #{map-get($theme-values, 'background')};
+    --theme-text: #{map-get($theme-values, 'text')};
+    --theme-text-secondary: #{map-get($theme-values, 'text-secondary')};
+    --theme-shadow-light: #{map-get($theme-values, 'shadow-light')};
+    --theme-shadow-dark: #{map-get($theme-values, 'shadow-dark')};
+  }
+}
+
+// 玻璃态 Mixin
+@mixin glassmorphism($opacity: 0.15) {
+  background: rgba(255, 255, 255, $opacity);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+// 拟物化 Mixin
+@mixin neumorphism($type: 'raised') {
+  @if $type == 'raised' {
+    background: var(--neu-surface);
+    box-shadow: 
+      var(--neu-distance) var(--neu-distance) calc(var(--neu-distance) * 2) var(--neu-shadow),
+      calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) calc(var(--neu-distance) * 2) var(--neu-highlight);
+  } @else if $type == 'inset' {
+    background: var(--neu-surface);
+    box-shadow: 
+      inset var(--neu-distance) var(--neu-distance) calc(var(--neu-distance) * 2) var(--neu-shadow),
+      inset calc(var(--neu-distance) * -1) calc(var(--neu-distance) * -1) calc(var(--neu-distance) * 2) var(--neu-highlight);
+  } @else if $type == 'flat' {
+    background: var(--neu-surface);
+    box-shadow: 
+      5px 5px 10px var(--neu-shadow),
+      -5px -5px 10px var(--neu-highlight);
+  }
+}
+
+// 玻璃态按钮样式
+@mixin glass-button {
+  @include glassmorphism(0.2);
+  border-radius: 12px;
+  padding: 10px 20px;
+  color: var(--theme-text);
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: translateY(-2px);
+    box-shadow: 
+      var(--glass-shadow),
+      0 16px 40px rgba(0, 0, 0, 0.15);
+  }
+  
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+// 拟物化按钮样式
+@mixin neu-button {
+  @include neumorphism('raised');
+  border-radius: 12px;
+  padding: 10px 20px;
+  color: #555;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  
+  &:hover {
+    @include neumorphism('flat');
+  }
+  
+  &:active {
+    @include neumorphism('inset');
+  }
+}
+
+// 玻璃态卡片样式
+@mixin glass-card {
+  @include glassmorphism(0.1);
+  border-radius: 16px;
+  padding: 24px;
+  color: var(--theme-text);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-4px);
+    box-shadow: 
+      var(--glass-shadow),
+      0 20px 60px rgba(0, 0, 0, 0.2);
+  }
+}
+
+// 拟物化卡片样式
+@mixin neu-card {
+  @include neumorphism('raised');
+  border-radius: 16px;
+  padding: 24px;
+  color: #555;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+      calc(var(--neu-distance) * 1.2) calc(var(--neu-distance) * 1.2) calc(var(--neu-distance) * 2.4) var(--neu-shadow),
+      calc(var(--neu-distance) * -1.2) calc(var(--neu-distance) * -1.2) calc(var(--neu-distance) * 2.4) var(--neu-highlight);
+  }
+}
+
+// 玻璃态输入框样式
+@mixin glass-input {
+  @include glassmorphism(0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: var(--theme-text);
+  border: 1px solid var(--glass-border);
+  outline: none;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &::placeholder {
+    color: var(--theme-text-secondary);
+  }
+  
+  &:focus {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: var(--theme-accent);
+    box-shadow: 
+      var(--glass-shadow),
+      0 0 20px rgba(255, 255, 255, 0.1);
+  }
+}
+
+// 拟物化输入框样式
+@mixin neu-input {
+  @include neumorphism('inset');
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: #555;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  &::placeholder {
+    color: #999;
+  }
+  
+  &:focus {
+    box-shadow: 
+      inset 8px 8px 16px var(--neu-shadow),
+      inset -8px -8px 16px var(--neu-highlight),
+      0 0 20px var(--theme-accent);
+  }
+}
+
+// 动画关键帧
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 255, 255, 0.2); }
+  50% { box-shadow: 0 0 40px rgba(255, 255, 255, 0.4); }
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+// 工具类
+.glass-surface {
+  @include glassmorphism();
+}
+
+.glass-button {
+  @include glass-button();
+}
+
+.glass-card {
+  @include glass-card();
+}
+
+.glass-input {
+  @include glass-input();
+}
+
+.neu-surface {
+  @include neumorphism('raised');
+}
+
+.neu-button {
+  @include neu-button();
+}
+
+.neu-card {
+  @include neu-card();
+}
+
+.neu-input {
+  @include neu-input();
+}
+
+.float-animation {
+  animation: float 3s ease-in-out infinite;
+}
+
+.glow-animation {
+  animation: glow 2s ease-in-out infinite alternate;
+}
+
+.pulse-animation {
+  animation: pulse 1.5s ease-in-out infinite;
+} 

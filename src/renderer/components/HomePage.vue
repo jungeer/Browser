@@ -1,14 +1,17 @@
 <template>
   <div class="home-page">
     <div class="home-container">
+      <!-- 主Logo区域 -->
       <div class="logo-section">
-        <div class="logo">🌐</div>
+        <div class="logo float-animation">🌐</div>
         <h1 class="title">Vue Electron Browser</h1>
-        <p class="subtitle">轻量级桌面浏览器</p>
+        <p class="subtitle">现代化玻璃态浏览器</p>
       </div>
       
+      <!-- 搜索区域 -->
       <div class="search-section">
-        <div class="search-box">
+        <div class="search-box glass-surface">
+          <div class="search-icon">🔍</div>
           <input 
             v-model="searchQuery"
             @keyup.enter="handleSearch"
@@ -16,45 +19,68 @@
             class="search-input"
             ref="searchInput"
           />
-          <button @click="handleSearch" class="search-btn">
-            <span class="search-icon">🔍</span>
+          <button @click="handleSearch" class="search-btn glass-button">
+            搜索
           </button>
         </div>
       </div>
       
+      <!-- 快速访问区域 -->
       <div class="quick-links">
-        <h3>快速访问</h3>
+        <h3 class="section-title">快速访问</h3>
         <div class="links-grid">
-          <a @click="navigateTo('https://www.baidu.com')" class="quick-link">
-            <div class="link-icon">🅱️</div>
-            <span>百度</span>
-          </a>
-          <a @click="navigateTo('https://www.google.com')" class="quick-link">
-            <div class="link-icon">🅖</div>
-            <span>Google</span>
-          </a>
-          <a @click="navigateTo('https://www.github.com')" class="quick-link">
-            <div class="link-icon">📦</div>
-            <span>GitHub</span>
-          </a>
-          <a @click="navigateTo('https://www.zhihu.com')" class="quick-link">
-            <div class="link-icon">🎯</div>
-            <span>知乎</span>
-          </a>
-          <a @click="navigateTo('https://www.bilibili.com')" class="quick-link">
-            <div class="link-icon">📺</div>
-            <span>哔哩哔哩</span>
-          </a>
-          <a @click="navigateTo('https://www.weibo.com')" class="quick-link">
-            <div class="link-icon">🐦</div>
-            <span>微博</span>
-          </a>
+          <div 
+            v-for="link in quickLinks" 
+            :key="link.name"
+            @click="navigateTo(link.url)" 
+            class="quick-link glass-card"
+          >
+            <div class="link-icon">{{ link.icon }}</div>
+            <span class="link-name">{{ link.name }}</span>
+            <div class="link-hover-effect"></div>
+          </div>
         </div>
       </div>
       
-      <div class="footer">
-        <p>© 2024 Vue Electron Browser - 专注于简洁的浏览体验</p>
+      <!-- 功能卡片区域 -->
+      <div class="feature-cards">
+        <div class="feature-card glass-card">
+          <div class="feature-icon">⚡</div>
+          <h4>极速加载</h4>
+          <p>基于 Chromium 内核，享受极速浏览体验</p>
+        </div>
+        <div class="feature-card glass-card">
+          <div class="feature-icon">🎨</div>
+          <h4>美观界面</h4>
+          <p>玻璃态设计，多主题色彩可选</p>
+        </div>
+        <div class="feature-card glass-card">
+          <div class="feature-icon">🔒</div>
+          <h4>安全隐私</h4>
+          <p>注重用户隐私，安全浏览保护</p>
+        </div>
       </div>
+      
+      <!-- 底部信息 -->
+      <div class="footer">
+        <div class="footer-content glass-surface">
+          <p>© 2024 Vue Electron Browser - 专注于现代化浏览体验</p>
+          <div class="footer-links">
+            <span @click="navigateTo('https://github.com')" class="footer-link">GitHub</span>
+            <span>•</span>
+            <span @click="navigateTo('https://vuejs.org')" class="footer-link">Vue.js</span>
+            <span>•</span>
+            <span @click="navigateTo('https://electronjs.org')" class="footer-link">Electron</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 背景装饰 -->
+    <div class="background-decorations">
+      <div class="decoration decoration-1"></div>
+      <div class="decoration decoration-2"></div>
+      <div class="decoration decoration-3"></div>
     </div>
   </div>
 </template>
@@ -64,6 +90,18 @@ import { ref, onMounted } from 'vue'
 
 const searchQuery = ref('')
 const searchInput = ref(null)
+
+// 快速链接数据
+const quickLinks = ref([
+  { name: '百度', url: 'https://www.baidu.com', icon: '🅱️' },
+  { name: 'Google', url: 'https://www.google.com', icon: '🔍' },
+  { name: 'GitHub', url: 'https://www.github.com', icon: '📦' },
+  { name: '知乎', url: 'https://www.zhihu.com', icon: '🎯' },
+  { name: '哔哩哔哩', url: 'https://www.bilibili.com', icon: '📺' },
+  { name: '微博', url: 'https://www.weibo.com', icon: '🐦' },
+  { name: 'YouTube', url: 'https://www.youtube.com', icon: '📹' },
+  { name: 'Twitter', url: 'https://www.twitter.com', icon: '🐦' }
+])
 
 // 定义 emits
 const emit = defineEmits(['navigate'])
@@ -80,7 +118,7 @@ const handleSearch = () => {
       url = 'https://' + url
     } else {
       // 作为搜索处理
-      url = `https://www.baidu.com/s?wd=${encodeURIComponent(url)}`
+      url = `https://www.google.com/search?q=${encodeURIComponent(url)}`
     }
   }
   
@@ -102,172 +140,331 @@ onMounted(() => {
 </script>
 
 <style lang="scss" scoped>
+@import '../styles/themes.scss';
+
 .home-page {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-background);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
+  color: var(--theme-text);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  position: relative;
+  overflow-y: auto;
+  padding: 2rem 0;
 }
 
 .home-container {
   text-align: center;
-  max-width: 600px;
+  max-width: 1000px;
   width: 90%;
   padding: 2rem;
+  position: relative;
+  z-index: 10;
 }
 
+// Logo 区域
 .logo-section {
-  margin-bottom: 3rem;
+  margin-bottom: 4rem;
   
   .logo {
-    font-size: 4rem;
-    margin-bottom: 1rem;
+    font-size: 5rem;
+    margin-bottom: 1.5rem;
     display: inline-block;
-    animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 4px 20px rgba(255, 255, 255, 0.3));
   }
   
   .title {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: 700;
-    margin-bottom: 0.5rem;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    margin-bottom: 0.8rem;
+    text-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    background: linear-gradient(135deg, var(--theme-text), var(--theme-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
   
   .subtitle {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     opacity: 0.9;
     font-weight: 300;
+    color: var(--theme-text-secondary);
   }
 }
 
+// 搜索区域
 .search-section {
-  margin-bottom: 3rem;
+  margin-bottom: 4rem;
   
   .search-box {
     display: flex;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 25px;
-    padding: 4px;
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    align-items: center;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 8px;
+    border-radius: 50px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 
+        0 12px 40px rgba(0, 0, 0, 0.15),
+        0 0 30px rgba(255, 255, 255, 0.1);
+    }
+    
+    .search-icon {
+      font-size: 1.2rem;
+      margin: 0 15px;
+      color: var(--theme-text-secondary);
+    }
     
     .search-input {
       flex: 1;
       border: none;
       background: transparent;
-      padding: 12px 20px;
-      font-size: 1rem;
-      color: white;
+      padding: 15px 10px;
+      font-size: 1.1rem;
+      color: var(--theme-text);
       outline: none;
       
       &::placeholder {
-        color: rgba(255, 255, 255, 0.7);
+        color: var(--theme-text-secondary);
       }
     }
     
     .search-btn {
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      border-radius: 20px;
-      padding: 10px 16px;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      
-      .search-icon {
-        font-size: 1.1rem;
-      }
-      
-      &:hover {
-        background: rgba(255, 255, 255, 0.3);
-        transform: scale(1.05);
-      }
+      margin-right: 8px;
+      padding: 12px 24px;
+      font-size: 0.9rem;
+      border-radius: 25px;
     }
   }
 }
 
+// 快速访问区域
 .quick-links {
-  margin-bottom: 2rem;
+  margin-bottom: 4rem;
   
-  h3 {
-    margin-bottom: 1.5rem;
-    font-size: 1.3rem;
+  .section-title {
+    margin-bottom: 2rem;
+    font-size: 1.5rem;
     font-weight: 600;
+    color: var(--theme-text);
     opacity: 0.9;
   }
   
   .links-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-    gap: 1rem;
-    max-width: 480px;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1.5rem;
+    max-width: 800px;
     margin: 0 auto;
   }
   
   .quick-link {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 1rem 0.5rem;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
-    text-decoration: none;
-    color: white;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    padding: 1.5rem 1rem;
+    border-radius: 16px;
     cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
     
     .link-icon {
-      font-size: 1.8rem;
-      margin-bottom: 0.5rem;
+      font-size: 2rem;
+      margin-bottom: 0.8rem;
+      display: block;
     }
     
-    span {
+    .link-name {
       font-size: 0.9rem;
       font-weight: 500;
+      color: var(--theme-text);
+    }
+    
+    .link-hover-effect {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, var(--theme-accent), var(--theme-primary));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: -1;
     }
     
     &:hover {
-      background: rgba(255, 255, 255, 0.2);
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      .link-hover-effect {
+        opacity: 0.1;
+      }
     }
   }
 }
 
-.footer {
-  margin-top: 2rem;
+// 功能卡片区域
+.feature-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-bottom: 4rem;
   
-  p {
-    font-size: 0.9rem;
-    opacity: 0.7;
+  .feature-card {
+    text-align: center;
+    padding: 2rem 1.5rem;
+    
+    .feature-icon {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      display: block;
+      opacity: 0.9;
+    }
+    
+    h4 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 0.8rem;
+      color: var(--theme-text);
+    }
+    
+    p {
+      font-size: 0.95rem;
+      color: var(--theme-text-secondary);
+      line-height: 1.6;
+    }
   }
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-10px); }
+// 底部区域
+.footer {
+  margin-top: 3rem;
+  
+  .footer-content {
+    padding: 1.5rem 2rem;
+    border-radius: 12px;
+    
+    p {
+      font-size: 0.9rem;
+      color: var(--theme-text-secondary);
+      margin-bottom: 0.8rem;
+    }
+    
+    .footer-links {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.8rem;
+      font-size: 0.85rem;
+      
+      .footer-link {
+        color: var(--theme-accent);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        
+        &:hover {
+          color: var(--theme-text);
+          text-shadow: 0 0 10px var(--theme-accent);
+        }
+      }
+      
+      span:not(.footer-link) {
+        color: var(--theme-text-secondary);
+      }
+    }
+  }
+}
+
+// 背景装饰
+.background-decorations {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  overflow: hidden;
+  
+  .decoration {
+    position: absolute;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--theme-accent), var(--theme-primary));
+    opacity: 0.1;
+    animation: float 6s ease-in-out infinite;
+  }
+  
+  .decoration-1 {
+    width: 200px;
+    height: 200px;
+    top: 10%;
+    left: 5%;
+    animation-delay: 0s;
+  }
+  
+  .decoration-2 {
+    width: 150px;
+    height: 150px;
+    top: 60%;
+    right: 10%;
+    animation-delay: 2s;
+  }
+  
+  .decoration-3 {
+    width: 100px;
+    height: 100px;
+    bottom: 20%;
+    left: 20%;
+    animation-delay: 4s;
+  }
 }
 
 // 响应式设计
 @media (max-width: 768px) {
   .home-container {
+    width: 95%;
     padding: 1rem;
   }
   
   .logo-section {
+    margin-bottom: 3rem;
+    
+    .logo {
+      font-size: 4rem;
+    }
+    
     .title {
-      font-size: 2rem;
+      font-size: 2.2rem;
     }
   }
   
   .links-grid {
-    grid-template-columns: repeat(3, 1fr);
-    gap: 0.8rem;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 1rem;
+  }
+  
+  .feature-cards {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+// 滚动条样式
+.home-page::-webkit-scrollbar {
+  width: 8px;
+}
+
+.home-page::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.home-page::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 4px;
+  
+  &:hover {
+    background: rgba(255, 255, 255, 0.5);
   }
 }
 </style> 
