@@ -36,7 +36,9 @@
           placeholder="输入网址或搜索..."
           class="url-input"
         />
-        <button @click="navigate" class="go-btn">跳转</button>
+        <button @click="navigate" class="go-btn">
+          {{ currentUrl.trim() && currentUrl.includes('.') && !currentUrl.includes(' ') && !currentUrl.match(/\s/) ? '跳转' : '搜索' }}
+        </button>
       </div>
       
       <div class="tab-controls">
@@ -171,20 +173,44 @@ const currentTheme = ref('ocean')
       let url = currentUrl.value.trim()
       if (!url) return
 
-      // 如果不是完整的 URL，则添加协议
+      console.log('🚀 开始导航:', url)
+
+      let finalUrl = url
+      let isSearch = false
+
+      // 如果不是完整的 URL，则添加协议或作为搜索处理
       if (!url.match(/^https?:\/\//)) {
-        if (url.includes('.') && !url.includes(' ')) {
-          url = 'https://' + url
+        if (url.includes('.') && !url.includes(' ') && !url.match(/\s/)) {
+          // 看起来像域名，添加https协议
+          finalUrl = 'https://' + url
+          console.log('🌐 识别为网址，添加协议:', finalUrl)
         } else {
           // 作为搜索处理
-          url = `https://www.google.com/search?q=${encodeURIComponent(url)}`
+          finalUrl = `https://www.google.com/search?q=${encodeURIComponent(url)}`
+          isSearch = true
+          console.log('🔍 识别为搜索词，使用Google搜索:', finalUrl)
         }
       }
 
       const currentTab = getCurrentTab()
       if (currentTab) {
-        currentTab.url = url
-        statusText.value = '星辰正在为您导航...'
+        // 更新标签页URL
+        currentTab.url = finalUrl
+        currentUrl.value = finalUrl
+        statusText.value = isSearch ? '星辰正在为您搜索...' : '星辰正在为您导航...'
+        
+        // 强制webview导航到新URL
+        nextTick(() => {
+          const webview = getCurrentWebview()
+          if (webview) {
+            console.log('📱 使用现有webview导航到:', finalUrl)
+            webview.loadURL(finalUrl)
+          } else {
+            console.log('🆕 将创建新webview加载:', finalUrl)
+          }
+        })
+        
+        console.log('✅ 导航完成:', finalUrl)
       }
     }
 
@@ -444,14 +470,22 @@ const onWebviewReady = (event) => {
       
       // 在当前标签页中打开新 URL
       const currentTab = getCurrentTab()
-              if (currentTab && event.url) {
-          // 检查 URL 是否有效
-          if (event.url && event.url !== 'about:blank' && !event.url.startsWith('javascript:')) {
-            currentTab.url = event.url
-            currentUrl.value = event.url
-            statusText.value = '星辰正在为您打开新页面...'
-          }
+      if (currentTab && event.url) {
+        // 检查 URL 是否有效
+        if (event.url && event.url !== 'about:blank' && !event.url.startsWith('javascript:')) {
+          currentTab.url = event.url
+          currentUrl.value = event.url
+          statusText.value = '星辰正在为您打开新页面...'
+          
+          // 强制webview导航到新URL
+          nextTick(() => {
+            const webview = getCurrentWebview()
+            if (webview) {
+              webview.loadURL(event.url)
+            }
+          })
         }
+      }
     }
 
     // Electron API 事件监听
@@ -471,6 +505,14 @@ const onWebviewReady = (event) => {
             currentTab.url = url
             currentUrl.value = url
             statusText.value = '星辰正在响应您的请求...'
+            
+            // 强制webview导航到新URL
+            nextTick(() => {
+              const webview = getCurrentWebview()
+              if (webview) {
+                webview.loadURL(url)
+              }
+            })
           }
         })
         
