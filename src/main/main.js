@@ -193,21 +193,17 @@ function setupIPCHandlers() {
 
   // IPC 事件处理
   ipcMain.handle('get-app-version', () => {
-    console.log('📦 获取应用版本')
     return app.getVersion()
   })
 
   // 设置窗口透明度
   ipcMain.handle('set-window-opacity', (event, opacity) => {
-    console.log('🎨 主进程收到设置透明度请求:', opacity)
     try {
       if (mainWindow && !mainWindow.isDestroyed()) {
-        const clampedOpacity = Math.max(0.1, Math.min(1.0, opacity))
+        const clampedOpacity = Math.max(0, Math.min(1.0, opacity)) // 允许透明度为 0
         mainWindow.setOpacity(clampedOpacity)
-        console.log('✅ 透明度设置成功:', clampedOpacity)
         return { success: true, opacity: clampedOpacity }
       }
-      console.log('❌ 窗口不可用')
       return { success: false, error: '窗口不可用' }
     } catch (err) {
       console.error('❌ 设置透明度失败:', err)
@@ -220,7 +216,6 @@ function setupIPCHandlers() {
     try {
       if (mainWindow && !mainWindow.isDestroyed()) {
         const opacity = mainWindow.getOpacity()
-        console.log('📊 当前透明度:', opacity)
         return { success: true, opacity }
       }
       return { success: false, opacity: 1.0 }
@@ -232,14 +227,11 @@ function setupIPCHandlers() {
 
   // 设置窗口总是在顶部
   ipcMain.handle('set-always-on-top', (event, flag) => {
-    console.log('📌 设置窗口置顶:', flag)
     try {
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.setAlwaysOnTop(flag)
-        console.log('✅ 窗口置顶设置成功:', flag)
         return { success: true }
       }
-      console.log('❌ 窗口不可用')
       return { success: false, error: '窗口不可用' }
     } catch (err) {
       console.error('❌ 设置窗口置顶失败:', err)

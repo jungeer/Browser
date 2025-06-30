@@ -17,7 +17,7 @@
           <div class="slider-container">
             <input 
               type="range" 
-              min="0.3" 
+              min="0" 
               max="1" 
               step="0.05" 
               v-model="opacity"
@@ -25,9 +25,10 @@
               class="opacity-slider"
             />
             <div class="slider-marks">
-              <span>30%</span>
+              <span>0%</span>
+              <span>25%</span>
               <span>50%</span>
-              <span>70%</span>
+              <span>75%</span>
               <span>100%</span>
             </div>
           </div>
@@ -78,7 +79,7 @@
           <div class="slider-container">
             <input 
               type="range" 
-              min="0.1" 
+              min="0" 
               max="0.5" 
               step="0.05" 
               v-model="hideOpacity"
@@ -86,9 +87,9 @@
               class="opacity-slider"
             />
             <div class="slider-marks">
-              <span>10%</span>
-              <span>20%</span>
-              <span>35%</span>
+              <span>0%</span>
+              <span>15%</span>
+              <span>30%</span>
               <span>50%</span>
             </div>
           </div>
@@ -122,7 +123,7 @@ const emit = defineEmits(['close', 'update:opacity', 'update:mouseHide', 'update
 const opacity = ref(1.0)
 const mouseHideEnabled = ref(false)
 const hideDelay = ref(500)
-const hideOpacity = ref(0.2)
+const hideOpacity = ref(0.1)
 
 // 更新透明度
 const updateOpacity = () => {
@@ -152,7 +153,6 @@ const closeSettings = () => {
 
 // 测试透明度功能
 const testOpacity = () => {
-  console.log('🧪 测试透明度功能')
   // 快速测试透明度变化
   const originalOpacity = opacity.value
   
@@ -175,7 +175,7 @@ const resetSettings = () => {
   opacity.value = 1.0
   mouseHideEnabled.value = false
   hideDelay.value = 500
-  hideOpacity.value = 0.2
+  hideOpacity.value = 0.1
   
   updateOpacity()
   emit('update:mouseHide', false)

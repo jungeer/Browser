@@ -145,7 +145,7 @@ const settingsPanel = ref(null)
 const windowOpacity = ref(1.0)
 const mouseHideEnabled = ref(false)
 const hideDelay = ref(500)
-const hideOpacity = ref(0.2)
+const hideOpacity = ref(0.1)
 const isMouseInside = ref(true)
 const hideTimeout = ref(null)
 
@@ -509,12 +509,10 @@ const closeSettings = () => {
 }
 
 const updateWindowOpacity = async (opacity) => {
-  console.log('🎨 渲染进程请求设置透明度:', opacity)
   windowOpacity.value = opacity
   if (window.electronAPI) {
     try {
       const result = await window.electronAPI.setWindowOpacity(opacity)
-      console.log('📈 透明度设置结果:', result)
       if (result && !result.success) {
         console.error('❌ 透明度设置失败:', result.error)
         statusText.value = `透明度设置失败: ${result.error}`
@@ -532,7 +530,6 @@ const updateWindowOpacity = async (opacity) => {
 }
 
 const updateMouseHide = (enabled) => {
-  console.log('🔄 更新鼠标隐藏功能:', enabled)
   mouseHideEnabled.value = enabled
   
   if (enabled) {
@@ -542,7 +539,6 @@ const updateMouseHide = (enabled) => {
     removeMouseListeners()
     // 恢复正常透明度
     if (window.electronAPI) {
-      console.log('🌟 恢复正常透明度（功能关闭）')
       window.electronAPI.setWindowOpacity(windowOpacity.value)
       statusText.value = '鼠标隐藏功能已关闭'
     }
@@ -559,7 +555,6 @@ const updateHideOpacity = (opacity) => {
 
 // 鼠标事件处理
 const handleMouseEnter = () => {
-  console.log('🖱️ 鼠标进入窗口')
   isMouseInside.value = true
   if (hideTimeout.value) {
     clearTimeout(hideTimeout.value)
@@ -567,20 +562,16 @@ const handleMouseEnter = () => {
   }
   
   if (mouseHideEnabled.value && window.electronAPI) {
-    console.log('🌟 恢复正常透明度')
     window.electronAPI.setWindowOpacity(windowOpacity.value)
     statusText.value = '鼠标已进入窗口'
   }
 }
 
 const handleMouseLeave = () => {
-  console.log('🖱️ 鼠标离开窗口')
   isMouseInside.value = false
   if (mouseHideEnabled.value) {
-    console.log(`⏱️ ${hideDelay.value}ms 后隐藏窗口`)
     hideTimeout.value = setTimeout(() => {
       if (!isMouseInside.value && window.electronAPI) {
-        console.log('👻 设置隐藏透明度')
         window.electronAPI.setWindowOpacity(hideOpacity.value)
         statusText.value = '鼠标已离开窗口'
       }
@@ -590,7 +581,6 @@ const handleMouseLeave = () => {
 
 // 使用更可靠的鼠标事件监听
 const setupMouseListeners = () => {
-  console.log('🎯 设置鼠标监听器')
   const appElement = document.getElementById('app')
   if (appElement) {
     // 使用 mouseover/mouseout 代替 mouseenter/mouseleave
@@ -600,7 +590,6 @@ const setupMouseListeners = () => {
     // 额外监听窗口焦点事件作为备用
     window.addEventListener('focus', handleMouseEnter, { passive: true })
     window.addEventListener('blur', () => {
-      console.log('🔍 窗口失去焦点')
       // 给一个短延迟，避免快速切换时的误触发
       setTimeout(handleMouseLeave, 100)
     }, { passive: true })
@@ -610,7 +599,6 @@ const setupMouseListeners = () => {
 }
 
 const removeMouseListeners = () => {
-  console.log('🗑️ 移除鼠标监听器')
   const appElement = document.getElementById('app')
   if (appElement) {
     appElement.removeEventListener('mouseover', handleMouseEnter)
@@ -636,7 +624,6 @@ const saveSettings = () => {
       hideOpacity: hideOpacity.value
     }
     localStorage.setItem('browserSettings', JSON.stringify(settings))
-    console.log('💾 设置已保存:', settings)
     statusText.value = '设置已保存'
   } catch (err) {
     console.error('❌ 保存设置失败:', err)
@@ -645,7 +632,6 @@ const saveSettings = () => {
 }
 
 const loadSettings = async () => {
-  console.log('📂 加载保存的设置')
   try {
     const saved = localStorage.getItem('browserSettings')
     if (saved) {
@@ -653,26 +639,20 @@ const loadSettings = async () => {
       windowOpacity.value = settings.windowOpacity || 1.0
       mouseHideEnabled.value = settings.mouseHideEnabled || false
       hideDelay.value = settings.hideDelay || 500
-      hideOpacity.value = settings.hideOpacity || 0.2
-      
-      console.log('📋 载入的设置:', settings)
+      hideOpacity.value = settings.hideOpacity || 0.1
       
       // 应用透明度设置
       if (window.electronAPI) {
-        console.log('🎨 应用保存的透明度:', windowOpacity.value)
-        const result = await window.electronAPI.setWindowOpacity(windowOpacity.value)
-        console.log('📈 透明度应用结果:', result)
+        await window.electronAPI.setWindowOpacity(windowOpacity.value)
       }
       
       // 应用鼠标隐藏设置
       if (mouseHideEnabled.value) {
-        console.log('🖱️ 启用鼠标隐藏功能')
         setupMouseListeners()
       }
       
       statusText.value = '设置已加载'
     } else {
-      console.log('📋 没有找到保存的设置，使用默认值')
       statusText.value = '使用默认设置'
     }
   } catch (err) {
@@ -692,8 +672,6 @@ const loadCurrentSettings = () => {
 
 // 生命周期钩子
 onMounted(async () => {
-  console.log('🚀 应用正在初始化...')
-  
   setupElectronListeners()
   
   // 监听窗口大小变化
@@ -717,8 +695,6 @@ onMounted(async () => {
   
   // 初始化时也调用一次
   setTimeout(handleResize, 500)
-  
-  console.log('✅ 应用初始化完成')
 })
 
 onUnmounted(() => {
