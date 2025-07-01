@@ -6,7 +6,7 @@
         <div class="logo float-animation">
           <Star :size="48" :fill="'currentColor'" />
         </div>
-        <h1 class="title">星辰浏览器</h1>
+        <h1 class="title">鸡米花浏览器</h1>
         <p class="subtitle">探索无限可能的智能浏览体验</p>
       </div>
       
@@ -101,7 +101,7 @@
         <div class="footer-content glass-surface">
           <p>
             <Heart :size="16" class="footer-icon" />
-            © 2024 星辰浏览器 - 让每一次浏览都成为探索
+            © 2025 鸡米花浏览器 - 让每一次浏览都成为探索
           </p>
           <div class="footer-links">
             <span @click="navigateTo('https://www.microsoft.com')" class="footer-link">

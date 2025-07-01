@@ -154,7 +154,7 @@
       </div>
       <div class="status-right">
         <Clock :size="14" class="status-icon" />
-        <span class="app-info">星辰浏览器 v{{ appVersion }}</span>
+        <span class="app-info">鸡米花浏览器 v{{ appVersion }}</span>
       </div>
     </div>
     
@@ -201,14 +201,14 @@ const tabs = reactive([
   {
     id: Date.now(),
     url: 'home://',
-    title: '星辰首页',
+    title: '鸡米花首页',
     favicon: null
   }
 ])
 const activeTabIndex = ref(0)
 const canGoBack = ref(false)
 const canGoForward = ref(false)
-const statusText = ref('星辰为您点亮')
+const statusText = ref('鸡米花为您点亮')
 const appVersion = ref('1.0.0')
 const addressInput = ref(null)
 const isOnline = ref(true)
@@ -329,7 +329,7 @@ const navigate = () => {
     // 更新标签页URL
     currentTab.url = finalUrl
     currentUrl.value = finalUrl
-    statusText.value = isSearch ? '星辰正在为您搜索...' : '星辰正在为您导航...'
+    statusText.value = isSearch ? '鸡米花正在为您搜索...' : '鸡米花正在为您导航...'
     
     // 强制webview导航到新URL
     nextTick(() => {
@@ -405,9 +405,9 @@ const goHome = () => {
   const currentTab = getCurrentTab()
   if (currentTab) {
     currentTab.url = 'home://'
-    currentTab.title = '星辰首页'
+    currentTab.title = '鸡米花首页'
     currentUrl.value = 'home://'
-    statusText.value = '欢迎回到星辰首页'
+    statusText.value = '欢迎回到鸡米花首页'
   }
 }
 
@@ -417,7 +417,7 @@ const handleHomeNavigate = (url) => {
   if (currentTab) {
     currentTab.url = url
     currentUrl.value = url
-    statusText.value = '星辰正在为您打开链接...'
+    statusText.value = '鸡米花正在为您打开链接...'
     
     // 延迟注入保护脚本
     setTimeout(() => {
@@ -608,7 +608,7 @@ const onNewWindow = (event) => {
     if (event.url && event.url !== 'about:blank' && !event.url.startsWith('javascript:')) {
       currentTab.url = event.url
       currentUrl.value = event.url
-      statusText.value = '星辰正在为您打开新页面...'
+      statusText.value = '鸡米花正在为您打开新页面...'
       
       // 强制webview导航到新URL
       nextTick(() => {
@@ -637,7 +637,7 @@ const setupElectronListeners = () => {
       if (currentTab && url) {
         currentTab.url = url
         currentUrl.value = url
-        statusText.value = '星辰正在响应您的请求...'
+        statusText.value = '鸡米花正在响应您的请求...'
         
         // 强制webview导航到新URL
         nextTick(() => {
@@ -807,7 +807,7 @@ const handleMouseEnter = () => {
   
   if (mouseHideEnabled.value && window.electronAPI) {
     window.electronAPI.setWindowOpacity(windowOpacity.value)
-    statusText.value = '星辰为您重新点亮'
+    statusText.value = '鸡米花为您重新点亮'
   }
 }
 
@@ -817,7 +817,7 @@ const handleMouseLeave = () => {
     hideTimeout.value = setTimeout(() => {
       if (!isMouseInside.value && window.electronAPI) {
         window.electronAPI.setWindowOpacity(hideOpacity.value)
-        statusText.value = '星辰进入隐身模式'
+        statusText.value = '鸡米花进入隐身模式'
       }
     }, hideDelay.value)
   }

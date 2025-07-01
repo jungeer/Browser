@@ -528,6 +528,7 @@ body {
   background: var(--theme-background);
   position: relative;
   overflow: hidden;
+  padding: 20px;
 }
 
 .webview {

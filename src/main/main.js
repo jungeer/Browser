@@ -23,7 +23,7 @@ function createWindow() {
       webSecurity: true,
       webviewTag: true // 启用 webview 标签支持
     },
-    // icon: path.join(__dirname, '../assets/icon.png'), // 如果有图标的话
+    icon: path.join(__dirname, '../../public/icon.jpg'), // 应用图标
     
     // 自定义标题栏配置 - 根据 Electron 官方文档
     titleBarStyle: 'hidden', // 隐藏默认标题栏
@@ -185,7 +185,7 @@ function createMenu() {
       label: '帮助',
       submenu: [
         {
-          label: '关于星辰浏览器',
+          label: '关于鸡米花浏览器',
           click: () => {
             // 可以在这里添加关于对话框
             shell.showItemInFolder(__filename)

@@ -1,7 +1,7 @@
 {
   "name": "stellar-browser",
   "version": "1.0.0",
-  "description": "星辰浏览器 - 为现代用户打造的智能浏览体验",
+  "description": "鸡米花浏览器 - 为现代用户打造的智能浏览体验",
   "main": "src/main/main.js",
   "scripts": {
     "dev": "node scripts/simple-dev.js",
@@ -38,7 +38,8 @@
   },
   "build": {
     "appId": "com.stellarbrowser.app",
-    "productName": "星辰浏览器",
+    "productName": "鸡米花浏览器",
+    "icon": "public/icon.jpg",
     "directories": {
       "output": "dist"
     },
