@@ -634,6 +634,52 @@ const onNewWindow = (event) => {
   }
 }
 
+// 开发者工具控制
+const toggleDevTools = async () => {
+  const currentTab = getCurrentTab()
+  if (currentTab) {
+    // 如果是首页，切换主窗口的开发者工具
+    if (currentTab.url === 'home://') {
+      if (window.electronAPI) {
+        try {
+          const result = await window.electronAPI.toggleMainDevTools()
+          if (result.success) {
+            statusText.value = result.message || '首页开发者工具已切换'
+          } else {
+            statusText.value = '首页开发者工具切换失败: ' + (result.error || '未知错误')
+          }
+        } catch (err) {
+          console.error('❌ 主窗口开发者工具操作失败:', err)
+          statusText.value = '首页开发者工具操作异常'
+        }
+      } else {
+        statusText.value = '开发者工具功能暂不可用'
+      }
+    } else {
+      // 如果是网页，切换webview的开发者工具
+      const webview = getCurrentWebview()
+      if (webview) {
+        try {
+          if (webview.isDevToolsOpened && webview.isDevToolsOpened()) {
+            webview.closeDevTools()
+            statusText.value = '网页开发者工具已关闭'
+          } else {
+            webview.openDevTools()
+            statusText.value = '网页开发者工具已打开'
+          }
+        } catch (err) {
+          console.error('❌ 网页开发者工具操作失败:', err)
+          statusText.value = '网页开发者工具操作失败'
+        }
+      } else {
+        statusText.value = '当前页面开发者工具不可用'
+      }
+    }
+  } else {
+    statusText.value = '无法获取当前页面信息'
+  }
+}
+
 // Electron API 事件监听
 const setupElectronListeners = () => {
   if (window.electronAPI) {
@@ -643,6 +689,7 @@ const setupElectronListeners = () => {
     window.electronAPI.onGoBack(() => goBack())
     window.electronAPI.onGoForward(() => goForward())
     window.electronAPI.onReload(() => reload())
+    window.electronAPI.onToggleDevTools(() => toggleDevTools())
     
     // 监听在当前标签页打开 URL 的事件
     window.electronAPI.onOpenUrlInCurrentTab((event, url) => {
@@ -679,6 +726,7 @@ const cleanupElectronListeners = () => {
     window.electronAPI.removeAllListeners('go-back')
     window.electronAPI.removeAllListeners('go-forward')
     window.electronAPI.removeAllListeners('reload')
+    window.electronAPI.removeAllListeners('toggle-dev-tools')
     window.electronAPI.removeAllListeners('open-url-in-current-tab')
   }
 }
@@ -1146,6 +1194,20 @@ const checkOnlineStatus = () => {
   isOnline.value = navigator.onLine
 }
 
+// 键盘事件处理
+const handleKeyDown = (event) => {
+  // F12 开发者工具
+  if (event.key === 'F12') {
+    event.preventDefault()
+    toggleDevTools()
+  }
+  // Ctrl/Cmd + Shift + I 也可以打开开发者工具（备选快捷键）
+  else if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key === 'I') {
+    event.preventDefault()
+    toggleDevTools()
+  }
+}
+
 // 生命周期钩子
 onMounted(async () => {
   // 首先应用主题，避免闪烁
@@ -1156,6 +1218,9 @@ onMounted(async () => {
   
   // 监听窗口大小变化
   window.addEventListener('resize', handleResize)
+  
+  // 监听键盘事件
+  window.addEventListener('keydown', handleKeyDown)
   
   // 监听网络状态
   window.addEventListener('online', checkOnlineStatus)
@@ -1185,6 +1250,7 @@ onMounted(async () => {
 onUnmounted(() => {
   cleanupElectronListeners()
   window.removeEventListener('resize', handleResize)
+  window.removeEventListener('keydown', handleKeyDown)
   window.removeEventListener('online', checkOnlineStatus)
   window.removeEventListener('offline', checkOnlineStatus)
   removeMouseListeners()

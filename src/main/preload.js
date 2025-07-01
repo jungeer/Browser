@@ -15,11 +15,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onGoForward: (callback) => ipcRenderer.on('go-forward', callback),
   onReload: (callback) => ipcRenderer.on('reload', callback),
   onOpenUrlInCurrentTab: (callback) => ipcRenderer.on('open-url-in-current-tab', callback),
+  onToggleDevTools: (callback) => ipcRenderer.on('toggle-dev-tools', callback),
   
   // 窗口控制 API
   setWindowOpacity: (opacity) => ipcRenderer.invoke('set-window-opacity', opacity),
   getWindowOpacity: () => ipcRenderer.invoke('get-window-opacity'),
   setAlwaysOnTop: (flag) => ipcRenderer.invoke('set-always-on-top', flag),
+  toggleMainDevTools: () => ipcRenderer.invoke('toggle-main-dev-tools'),
   
   // 移除监听器
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel)

@@ -179,6 +179,14 @@ function createMenu() {
         { label: '缩小显示', accelerator: 'CmdOrCtrl+-', role: 'zoomOut' },
         { type: 'separator' },
         {
+          label: '开发者工具',
+          accelerator: 'F12',
+          click: () => {
+            mainWindow.webContents.send('toggle-dev-tools')
+          }
+        },
+        { type: 'separator' },
+        {
           label: '保持置顶',
           type: 'checkbox',
           checked: false,
@@ -278,6 +286,26 @@ function setupIPCHandlers() {
       return { success: false, error: '窗口不可用' }
     } catch (err) {
       console.error('❌ 设置窗口置顶失败:', err)
+      return { success: false, error: err.message }
+    }
+  })
+
+  // 切换主窗口开发者工具
+  ipcMain.handle('toggle-main-dev-tools', () => {
+    try {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        const wasOpened = mainWindow.webContents.isDevToolsOpened()
+        if (wasOpened) {
+          mainWindow.webContents.closeDevTools()
+          return { success: true, action: 'closed', message: '首页开发者工具已关闭' }
+        } else {
+          mainWindow.webContents.openDevTools()
+          return { success: true, action: 'opened', message: '首页开发者工具已打开' }
+        }
+      }
+      return { success: false, error: '窗口不可用' }
+    } catch (err) {
+      console.error('❌ 切换主窗口开发者工具失败:', err)
       return { success: false, error: err.message }
     }
   })
