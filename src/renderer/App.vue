@@ -418,6 +418,7 @@ const goHome = () => {
   if (currentTab) {
     currentTab.url = 'home://'
     currentTab.title = '鸡米花首页'
+    currentTab.favicon = null  // 重置图标为默认状态
     currentUrl.value = 'home://'
     statusText.value = '欢迎回到鸡米花首页'
   }
