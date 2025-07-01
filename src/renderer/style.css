@@ -588,7 +588,7 @@ body {
   background: var(--theme-background);
   position: relative;
   overflow: hidden;
-  padding: 20px;
+  padding: 16px;
   /* 确保内容区域正确计算高度，避免状态栏被遮挡 */
   min-height: 0;
 }
