@@ -33,14 +33,58 @@
         </button>
       </div>
       
-      <!-- 窗口控制按钮区域（紧凑设计） -->
+      <!-- 窗口控制按钮区域（历史记录下拉） -->
       <div class="window-controls">
-        <button @click="goHome" class="control-btn home-btn" title="回到首页">
-          <Home :size="14" />
-        </button>
-        <button @click="openSettings" class="control-btn settings-btn" title="设置">
-          <Settings :size="14" />
-        </button>
+        <div class="history-dropdown-container">
+          <button 
+            @click="toggleHistoryMenu" 
+            class="control-btn history-btn" 
+            title="历史记录"
+          >
+            <ChevronDown :size="14" />
+          </button>
+          
+          <!-- 历史记录下拉菜单 -->
+          <div v-if="showHistoryMenu" class="dropdown-menu history-menu" @click.stop>
+            <div class="menu-header">
+              <History :size="16" />
+              <span>最近访问</span>
+            </div>
+            <div class="menu-items">
+              <div 
+                v-if="browserHistory.length === 0" 
+                class="menu-item empty"
+              >
+                暂无访问记录
+              </div>
+              <div 
+                v-for="(item, index) in browserHistory.slice(0, 20)" 
+                :key="index"
+                class="menu-item history-item"
+                @click="navigateToHistory(item)"
+              >
+                <img 
+                  v-if="item.favicon" 
+                  :src="item.favicon" 
+                  class="history-favicon"
+                  @error="() => item.favicon = null"
+                />
+                <Globe v-else :size="14" class="history-icon" />
+                <div class="history-info">
+                  <div class="history-title">{{ item.title || '无标题' }}</div>
+                  <div class="history-url">{{ item.url }}</div>
+                </div>
+                <button 
+                  @click.stop="removeHistoryItem(index)" 
+                  class="remove-btn"
+                  title="删除"
+                >
+                  <Trash2 :size="12" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -69,6 +113,13 @@
           title="刷新"
         >
           <RotateCcw :size="18" />
+        </button>
+        <button 
+          @click="goHome" 
+          class="nav-btn home-btn"
+          title="回到首页"
+        >
+          <Home :size="18" />
         </button>
       </div>
       
@@ -104,9 +155,34 @@
         <button @click="toggleBookmark" class="action-btn bookmark-btn" title="收藏">
           <Star :size="18" :fill="isBookmarked ? 'currentColor' : 'none'" />
         </button>
-        <button @click="showMenu" class="action-btn menu-btn" title="菜单">
-          <MoreVertical :size="18" />
-        </button>
+        
+        <!-- 功能菜单 -->
+        <div class="menu-dropdown-container">
+          <button @click="toggleFunctionMenu" class="action-btn menu-btn" title="功能菜单">
+            <MoreVertical :size="18" />
+          </button>
+          
+          <!-- 功能菜单下拉 -->
+          <div v-if="showFunctionMenu" class="dropdown-menu function-menu" @click.stop>
+            <div class="menu-items">
+              <div class="menu-item" @click="addTab">
+                <Plus :size="16" />
+                <span>新的标签页</span>
+                <span class="shortcut">Ctrl+T</span>
+              </div>
+              <div class="menu-item" @click="openNewWindow">
+                <ExternalLink :size="16" />
+                <span>新的窗口</span>
+                <span class="shortcut">Ctrl+N</span>
+              </div>
+              <div class="menu-separator"></div>
+              <div class="menu-item" @click="openSettings">
+                <Settings :size="16" />
+                <span>设置</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -193,7 +269,11 @@ import {
   MoreVertical,
   Wifi,
   WifiOff,
-  Clock
+  Clock,
+  ChevronDown,
+  History,
+  ExternalLink,
+  Trash2
 } from 'lucide-vue-next'
 import HomePage from './components/HomePage.vue'
 import SettingsPanel from './components/SettingsPanel.vue'
@@ -238,6 +318,11 @@ const customThemeColors = ref({
 // 新功能状态
 const minimalistMode = ref(false)  // 极简模式
 const alwaysOnTop = ref(false)    // 系统置顶
+
+// 菜单和历史记录状态
+const showFunctionMenu = ref(false)  // 功能菜单
+const showHistoryMenu = ref(false)   // 历史记录菜单
+const browserHistory = reactive([])  // 浏览器历史记录
 
 // 计算属性
 const isSecure = computed(() => {
@@ -595,6 +680,14 @@ const onNavigate = (event) => {
   if (currentTab) {
     currentTab.url = event.url
     currentUrl.value = event.url
+    
+    // 添加到历史记录（排除首页和特殊URL）
+    if (event.url !== 'home://' && 
+        !event.url.startsWith('file://') && 
+        !event.url.startsWith('about:') && 
+        !event.url.startsWith('data:')) {
+      addToHistory(event.url, currentTab.title, currentTab.favicon)
+    }
   }
   updateNavigationState()
 }
@@ -1184,9 +1277,90 @@ const toggleBookmark = () => {
   statusText.value = isBookmarked.value ? '已添加到收藏' : '已取消收藏'
 }
 
-// 显示菜单
-const showMenu = () => {
-  statusText.value = '功能菜单即将推出'
+// 菜单控制功能
+const toggleFunctionMenu = () => {
+  showFunctionMenu.value = !showFunctionMenu.value
+  if (showHistoryMenu.value) showHistoryMenu.value = false // 关闭其他菜单
+}
+
+const toggleHistoryMenu = () => {
+  showHistoryMenu.value = !showHistoryMenu.value
+  if (showFunctionMenu.value) showFunctionMenu.value = false // 关闭其他菜单
+}
+
+// 新窗口功能
+const openNewWindow = () => {
+  showFunctionMenu.value = false
+  if (window.electronAPI) {
+    window.electronAPI.openNewWindow()
+    statusText.value = '正在打开新窗口...'
+  } else {
+    statusText.value = '新窗口功能暂不可用'
+  }
+}
+
+// 历史记录功能
+const addToHistory = (url, title, favicon) => {
+  // 避免重复添加相同的URL
+  const existingIndex = browserHistory.findIndex(item => item.url === url)
+  if (existingIndex !== -1) {
+    // 如果已存在，移除旧的记录
+    browserHistory.splice(existingIndex, 1)
+  }
+  
+  // 添加到历史记录开头
+  browserHistory.unshift({
+    url,
+    title: title || '无标题',
+    favicon,
+    timestamp: Date.now()
+  })
+  
+  // 限制历史记录数量为100条
+  if (browserHistory.length > 100) {
+    browserHistory.splice(100)
+  }
+  
+  // 保存到本地存储
+  localStorage.setItem('browser-history', JSON.stringify(browserHistory))
+}
+
+const navigateToHistory = (item) => {
+  showHistoryMenu.value = false
+  const currentTab = getCurrentTab()
+  if (currentTab) {
+    currentTab.url = item.url
+    currentTab.title = item.title
+    currentTab.favicon = item.favicon
+    currentUrl.value = item.url
+    statusText.value = '正在访问历史记录...'
+    
+    // 强制webview导航到URL
+    nextTick(() => {
+      const webview = getCurrentWebview()
+      if (webview) {
+        webview.loadURL(item.url)
+      }
+    })
+  }
+}
+
+const removeHistoryItem = (index) => {
+  browserHistory.splice(index, 1)
+  localStorage.setItem('browser-history', JSON.stringify(browserHistory))
+  statusText.value = '历史记录已删除'
+}
+
+const loadBrowserHistory = () => {
+  try {
+    const savedHistory = localStorage.getItem('browser-history')
+    if (savedHistory) {
+      const history = JSON.parse(savedHistory)
+      browserHistory.splice(0, browserHistory.length, ...history)
+    }
+  } catch (err) {
+    console.error('❌ 加载历史记录失败:', err)
+  }
 }
 
 // 网络状态检测
@@ -1206,6 +1380,31 @@ const handleKeyDown = (event) => {
     event.preventDefault()
     toggleDevTools()
   }
+  // Escape 关闭菜单
+  else if (event.key === 'Escape') {
+    showFunctionMenu.value = false
+    showHistoryMenu.value = false
+  }
+  // Ctrl+T 新标签页
+  else if ((event.ctrlKey || event.metaKey) && event.key === 't') {
+    event.preventDefault()
+    addTab()
+  }
+  // Ctrl+N 新窗口
+  else if ((event.ctrlKey || event.metaKey) && event.key === 'n') {
+    event.preventDefault()
+    openNewWindow()
+  }
+}
+
+// 点击外部关闭菜单
+const handleClickOutside = (event) => {
+  // 检查点击是否在菜单外部
+  if (!event.target.closest('.menu-dropdown-container') && 
+      !event.target.closest('.history-dropdown-container')) {
+    showFunctionMenu.value = false
+    showHistoryMenu.value = false
+  }
 }
 
 // 生命周期钩子
@@ -1222,10 +1421,16 @@ onMounted(async () => {
   // 监听键盘事件
   window.addEventListener('keydown', handleKeyDown)
   
+  // 监听点击外部关闭菜单
+  document.addEventListener('click', handleClickOutside)
+  
   // 监听网络状态
   window.addEventListener('online', checkOnlineStatus)
   window.addEventListener('offline', checkOnlineStatus)
   checkOnlineStatus()
+  
+  // 加载历史记录
+  loadBrowserHistory()
   
   // 等待 electronAPI 可用后再加载设置
   if (window.electronAPI) {
@@ -1251,6 +1456,7 @@ onUnmounted(() => {
   cleanupElectronListeners()
   window.removeEventListener('resize', handleResize)
   window.removeEventListener('keydown', handleKeyDown)
+  document.removeEventListener('click', handleClickOutside)
   window.removeEventListener('online', checkOnlineStatus)
   window.removeEventListener('offline', checkOnlineStatus)
   removeMouseListeners()

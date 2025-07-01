@@ -22,6 +22,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getWindowOpacity: () => ipcRenderer.invoke('get-window-opacity'),
   setAlwaysOnTop: (flag) => ipcRenderer.invoke('set-always-on-top', flag),
   toggleMainDevTools: () => ipcRenderer.invoke('toggle-main-dev-tools'),
+  openNewWindow: () => ipcRenderer.invoke('open-new-window'),
   
   // 移除监听器
   removeAllListeners: (channel) => ipcRenderer.removeAllListeners(channel)

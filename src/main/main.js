@@ -115,6 +115,13 @@ function createMenu() {
           }
         },
         {
+          label: '新建窗口',
+          accelerator: 'CmdOrCtrl+N',
+          click: () => {
+            createWindow()
+          }
+        },
+        {
           label: '结束当前页面',
           accelerator: 'CmdOrCtrl+W',
           click: () => {
@@ -306,6 +313,17 @@ function setupIPCHandlers() {
       return { success: false, error: '窗口不可用' }
     } catch (err) {
       console.error('❌ 切换主窗口开发者工具失败:', err)
+      return { success: false, error: err.message }
+    }
+  })
+
+  // 打开新窗口
+  ipcMain.handle('open-new-window', () => {
+    try {
+      createWindow()
+      return { success: true }
+    } catch (err) {
+      console.error('❌ 打开新窗口失败:', err)
       return { success: false, error: err.message }
     }
   })
