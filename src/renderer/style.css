@@ -105,6 +105,30 @@
   --theme-shadow-dark: rgba(0, 0, 0, 0.15);
 }
 
+.theme-programmer {
+  --theme-primary: #0f0f23;
+  --theme-secondary: #1a1a40;
+  --theme-accent: #00ffff;
+  --theme-surface: rgba(15, 15, 35, 0.15);
+  --theme-background: linear-gradient(135deg, #0f0f23 0%, #1a1a40 100%);
+  --theme-text: #00ffff;
+  --theme-text-secondary: rgba(0, 255, 255, 0.8);
+  --theme-shadow-light: rgba(0, 255, 255, 0.2);
+  --theme-shadow-dark: rgba(0, 0, 0, 0.7);
+}
+
+.theme-accountant {
+  --theme-primary: #2c3e50;
+  --theme-secondary: #3498db;
+  --theme-accent: #f39c12;
+  --theme-surface: rgba(52, 152, 219, 0.15);
+  --theme-background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+  --theme-text: #ffffff;
+  --theme-text-secondary: rgba(255, 255, 255, 0.8);
+  --theme-shadow-light: rgba(255, 255, 255, 0.2);
+  --theme-shadow-dark: rgba(0, 0, 0, 0.3);
+}
+
 /* 全局基础样式 */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
@@ -124,7 +148,7 @@ body {
   background: var(--theme-background);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   /* 为固定的自定义标题栏留出空间 - 根据 Electron 官方文档 */
-  padding-top: 16px;
+  padding-top: 18px; /* 标题栏高度 */
 }
 
 /* 顶部标题栏样式 - Chrome风格 */
@@ -379,6 +403,16 @@ body {
   z-index: 100;
   /* 确保工具栏在标题栏下方 */
   margin-top: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 极简模式工具栏样式 */
+.browser-toolbar.minimalist {
+  height: 42px;
+  padding: 0 12px;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* 导航按钮组 */
@@ -401,6 +435,13 @@ body {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   color: var(--theme-text);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 极简模式导航按钮样式 */
+.browser-toolbar.minimalist .nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
 }
 
 .nav-btn:hover:not(:disabled) {
@@ -437,6 +478,13 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 0 16px;
   transition: all 0.3s ease;
+}
+
+/* 极简模式地址栏样式 */
+.browser-toolbar.minimalist .url-container {
+  border-radius: 20px;
+  padding: 0 12px;
+  height: 36px;
 }
 
 .url-container:focus-within {
@@ -511,6 +559,18 @@ body {
   color: var(--theme-text);
 }
 
+/* 极简模式操作按钮样式 */
+.browser-toolbar.minimalist .action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.browser-toolbar.minimalist .go-btn {
+  width: 32px;
+  height: 32px;
+}
+
 .action-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: translateY(-1px);
@@ -529,6 +589,8 @@ body {
   position: relative;
   overflow: hidden;
   padding: 20px;
+  /* 确保内容区域正确计算高度，避免状态栏被遮挡 */
+  min-height: 0;
 }
 
 .webview {
@@ -726,4 +788,112 @@ input:focus-visible {
 
 .theme-transition * {
   transition: color 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+}
+
+/* UI 风格样式 */
+/* 玻璃态风格 */
+.ui-glass .glass-surface,
+.ui-glass .settings-content,
+.ui-glass .chrome-title-bar,
+.ui-glass .browser-toolbar {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+.ui-glass .nav-btn,
+.ui-glass .action-btn,
+.ui-glass .url-container {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* 拟物化风格 */
+.ui-neu .settings-content {
+  background: #e0e5ec !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: 
+    20px 20px 40px #a3b1c6,
+    -20px -20px 40px #ffffff !important;
+}
+
+.ui-neu .chrome-title-bar,
+.ui-neu .browser-toolbar {
+  background: #e0e5ec !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: 
+    inset 5px 5px 10px #a3b1c6,
+    inset -5px -5px 10px #ffffff !important;
+}
+
+.ui-neu .nav-btn,
+.ui-neu .action-btn {
+  background: #e0e5ec !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: 
+    5px 5px 10px #a3b1c6,
+    -5px -5px 10px #ffffff !important;
+  color: #555 !important;
+}
+
+.ui-neu .nav-btn:hover,
+.ui-neu .action-btn:hover {
+  box-shadow: 
+    2px 2px 5px #a3b1c6,
+    -2px -2px 5px #ffffff !important;
+}
+
+.ui-neu .nav-btn:active,
+.ui-neu .action-btn:active {
+  box-shadow: 
+    inset 3px 3px 6px #a3b1c6,
+    inset -3px -3px 6px #ffffff !important;
+}
+
+.ui-neu .url-container {
+  background: #e0e5ec !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: 
+    inset 3px 3px 6px #a3b1c6,
+    inset -3px -3px 6px #ffffff !important;
+}
+
+.ui-neu .status-bar {
+  background: #e0e5ec !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: 
+    inset 0 2px 4px #a3b1c6,
+    inset 0 -2px 4px #ffffff !important;
+}
+
+/* 拟物化风格下的文字颜色调整 */
+.ui-neu .settings-content,
+.ui-neu .chrome-title-bar,
+.ui-neu .browser-toolbar,
+.ui-neu .status-bar {
+  color: #555 !important;
+}
+
+.ui-neu .tab-title,
+.ui-neu .url-input,
+.ui-neu .status-text,
+.ui-neu .app-info {
+  color: #555 !important;
+}
+
+.ui-neu .url-input::placeholder {
+  color: #888 !important;
 } 

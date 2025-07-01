@@ -178,6 +178,22 @@ function createMenu() {
         { label: '放大显示', accelerator: 'CmdOrCtrl+Plus', role: 'zoomIn' },
         { label: '缩小显示', accelerator: 'CmdOrCtrl+-', role: 'zoomOut' },
         { type: 'separator' },
+        {
+          label: '保持置顶',
+          type: 'checkbox',
+          checked: false,
+          click: (menuItem) => {
+            try {
+              if (mainWindow && !mainWindow.isDestroyed()) {
+                mainWindow.setAlwaysOnTop(menuItem.checked)
+                console.log('✅ 窗口置顶状态:', menuItem.checked)
+              }
+            } catch (err) {
+              console.error('❌ 从菜单设置窗口置顶失败:', err)
+            }
+          }
+        },
+        { type: 'separator' },
         { label: '全屏模式', accelerator: 'F11', role: 'togglefullscreen' }
       ]
     },
@@ -244,6 +260,19 @@ function setupIPCHandlers() {
     try {
       if (mainWindow && !mainWindow.isDestroyed()) {
         mainWindow.setAlwaysOnTop(flag)
+        
+        // 同步更新菜单项状态
+        const menu = Menu.getApplicationMenu()
+        if (menu) {
+          const viewMenu = menu.items.find(item => item.label === '视图')
+          if (viewMenu) {
+            const alwaysOnTopMenuItem = viewMenu.submenu.items.find(item => item.label === '保持置顶')
+            if (alwaysOnTopMenuItem) {
+              alwaysOnTopMenuItem.checked = flag
+            }
+          }
+        }
+        
         return { success: true }
       }
       return { success: false, error: '窗口不可用' }

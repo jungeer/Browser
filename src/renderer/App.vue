@@ -44,8 +44,8 @@
       </div>
     </div>
 
-    <!-- 浏览器工具栏（集成到一行） -->
-    <div class="browser-toolbar">
+    <!-- 浏览器工具栏（集成到一行） - 极简模式下缩小 -->
+    <div class="browser-toolbar" :class="{ 'minimalist': minimalistMode }">
       <div class="navigation-buttons">
         <button 
           @click="goBack" 
@@ -145,8 +145,8 @@
       </template>
     </div>
     
-    <!-- 状态栏 -->
-    <div class="status-bar">
+    <!-- 状态栏 - 极简模式下隐藏 -->
+    <div v-if="!minimalistMode" class="status-bar">
       <div class="status-left">
         <Wifi :size="14" v-if="isOnline" class="status-icon" />
         <WifiOff :size="14" v-else class="status-icon offline" />
@@ -167,6 +167,9 @@
       @update:hideDelay="updateHideDelay"
       @update:hideOpacity="updateHideOpacity"
       @themeChange="handleThemeChange"
+      @update:customColors="updateCustomColors"
+      @update:minimalistMode="updateMinimalistMode"
+      @update:alwaysOnTop="updateAlwaysOnTop"
       ref="settingsPanel"
     />
   </div>
@@ -226,6 +229,15 @@ const hideTimeout = ref(null)
 
 // 主题相关状态
 const currentTheme = ref('dark')
+const customThemeColors = ref({
+  primary: '#667eea',
+  secondary: '#764ba2',
+  accent: '#4facfe'
+})
+
+// 新功能状态
+const minimalistMode = ref(false)  // 极简模式
+const alwaysOnTop = ref(false)    // 系统置顶
 
 // 计算属性
 const isSecure = computed(() => {
@@ -679,7 +691,10 @@ const handleResize = () => {
 // 设置相关方法
 const openSettings = () => {
   showSettings.value = true
-  loadCurrentSettings()
+  // 延迟加载设置，确保组件完全渲染
+  nextTick(() => {
+    loadCurrentSettings()
+  })
 }
 
 const closeSettings = () => {
@@ -737,11 +752,18 @@ const handleThemeChange = (themeName) => {
   console.log('🎨 切换主题:', themeName)
   currentTheme.value = themeName
   
+  // 清除自定义颜色状态
+  localStorage.removeItem('browser-using-custom-colors')
+  const customStyleSheet = document.getElementById('custom-colors-override')
+  if (customStyleSheet) {
+    customStyleSheet.remove()
+  }
+  
   // 更新根元素的主题类
   const root = document.documentElement
   const body = document.body
   
-  // 移除旧的主题类
+  // 移除旧的主题类（包括自定义主题类）
   root.className = root.className.replace(/theme-\w+/g, '')
   body.className = body.className.replace(/theme-\w+/g, '')
   
@@ -768,7 +790,9 @@ const getThemeDisplayName = (themeName) => {
     forest: '森林绿',
     purple: '梦幻紫',
     dark: '深夜黑',
-    cherry: '樱花粉'
+    cherry: '樱花粉',
+    programmer: '程序员',
+    accountant: '会计师'
   }
   return themeNames[themeName] || '经典'
 }
@@ -866,7 +890,10 @@ const saveSettings = () => {
       mouseHideEnabled: mouseHideEnabled.value,
       hideDelay: hideDelay.value,
       hideOpacity: hideOpacity.value,
-      currentTheme: currentTheme.value
+      currentTheme: currentTheme.value,
+      customThemeColors: customThemeColors.value,
+      minimalistMode: minimalistMode.value,
+      alwaysOnTop: alwaysOnTop.value
     }
     localStorage.setItem('browserSettings', JSON.stringify(settings))
     statusText.value = '个性化设置已保存'
@@ -885,6 +912,97 @@ const loadSettings = async () => {
       mouseHideEnabled.value = settings.mouseHideEnabled || false
       hideDelay.value = settings.hideDelay || 500
       hideOpacity.value = settings.hideOpacity || 0.1
+      
+      // 加载新功能设置
+      if (settings.customThemeColors) {
+        customThemeColors.value = settings.customThemeColors
+        // 检查是否正在使用自定义颜色
+        const usingCustomColors = localStorage.getItem('browser-using-custom-colors')
+        if (usingCustomColors === 'true') {
+          // 应用自定义颜色，但不保存（避免循环调用）
+          const colors = settings.customThemeColors
+          
+          let customStyleSheet = document.getElementById('custom-colors-override')
+          if (!customStyleSheet) {
+            customStyleSheet = document.createElement('style')
+            customStyleSheet.id = 'custom-colors-override'
+            document.head.appendChild(customStyleSheet)
+          }
+          
+          customStyleSheet.textContent = `
+            :root,
+            body,
+            #app,
+            .theme-ocean,
+            .theme-sunset,
+            .theme-forest,
+            .theme-purple,
+            .theme-dark,
+            .theme-cherry,
+            .theme-programmer,
+            .theme-accountant {
+              --theme-primary: ${colors.primary} !important;
+              --theme-secondary: ${colors.secondary} !important;
+              --theme-accent: ${colors.accent} !important;
+              --theme-surface: ${colors.primary}26 !important;
+              --theme-background: linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%) !important;
+            }
+          `
+          
+          console.log('✅ 启动时加载自定义颜色:', settings.customThemeColors)
+        }
+      } else {
+        // 如果统一设置中没有，尝试从单独的键加载
+        const savedCustomColors = localStorage.getItem('browser-custom-colors')
+        const usingCustomColors = localStorage.getItem('browser-using-custom-colors')
+        const themeMode = localStorage.getItem('browser-theme-mode') || 'preset'
+        if (savedCustomColors && usingCustomColors === 'true' && themeMode === 'custom') {
+          try {
+            const colors = JSON.parse(savedCustomColors)
+            customThemeColors.value = colors
+            
+            let customStyleSheet = document.getElementById('custom-colors-override')
+            if (!customStyleSheet) {
+              customStyleSheet = document.createElement('style')
+              customStyleSheet.id = 'custom-colors-override'
+              document.head.appendChild(customStyleSheet)
+            }
+            
+            customStyleSheet.textContent = `
+              :root,
+              body,
+              #app,
+              .theme-ocean,
+              .theme-sunset,
+              .theme-forest,
+              .theme-purple,
+              .theme-dark,
+              .theme-cherry,
+              .theme-programmer,
+              .theme-accountant {
+                --theme-primary: ${colors.primary} !important;
+                --theme-secondary: ${colors.secondary} !important;
+                --theme-accent: ${colors.accent} !important;
+                --theme-surface: ${colors.primary}26 !important;
+                --theme-background: linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%) !important;
+              }
+            `
+            
+            console.log('✅ 从单独键加载自定义颜色:', colors)
+          } catch (err) {
+            console.error('❌ 解析自定义颜色失败:', err)
+          }
+        }
+      }
+      if (settings.minimalistMode !== undefined) {
+        minimalistMode.value = settings.minimalistMode
+      }
+      if (settings.alwaysOnTop !== undefined) {
+        alwaysOnTop.value = settings.alwaysOnTop
+        if (window.electronAPI) {
+          await window.electronAPI.setAlwaysOnTop(alwaysOnTop.value)
+        }
+      }
       
       // 应用主题设置
       const savedTheme = settings.currentTheme || localStorage.getItem('browser-theme') || 'dark'
@@ -922,7 +1040,93 @@ const loadCurrentSettings = () => {
     settingsPanel.value.setHideDelay(hideDelay.value)
     settingsPanel.value.setHideOpacity(hideOpacity.value)
     settingsPanel.value.setTheme(currentTheme.value)
+    settingsPanel.value.setCustomColors(customThemeColors.value)
+    settingsPanel.value.setMinimalistMode(minimalistMode.value)
+    settingsPanel.value.setAlwaysOnTop(alwaysOnTop.value)
+    
+    // 同步主题模式
+    const savedThemeMode = localStorage.getItem('browser-theme-mode') || 'preset'
+    settingsPanel.value.setThemeMode(savedThemeMode)
   }
+}
+
+// 新功能处理方法
+// 更新自定义主题颜色
+const updateCustomColors = (colors) => {
+  customThemeColors.value = { ...colors }
+  
+  // 检查是否正在使用自定义模式
+  const themeMode = localStorage.getItem('browser-theme-mode') || 'preset'
+  if (themeMode !== 'custom') {
+    console.log('⚠️ 当前不是自定义模式，跳过颜色应用')
+    return
+  }
+  
+  // 创建高优先级的样式表
+  let customStyleSheet = document.getElementById('custom-colors-override')
+  if (!customStyleSheet) {
+    customStyleSheet = document.createElement('style')
+    customStyleSheet.id = 'custom-colors-override'
+    document.head.appendChild(customStyleSheet)
+  }
+  
+  customStyleSheet.textContent = `
+    :root,
+    body,
+    #app,
+    .theme-ocean,
+    .theme-sunset,
+    .theme-forest,
+    .theme-purple,
+    .theme-dark,
+    .theme-cherry,
+    .theme-programmer,
+    .theme-accountant {
+      --theme-primary: ${colors.primary} !important;
+      --theme-secondary: ${colors.secondary} !important;
+      --theme-accent: ${colors.accent} !important;
+      --theme-surface: ${colors.primary}26 !important;
+      --theme-background: linear-gradient(135deg, ${colors.primary} 0%, ${colors.secondary} 100%) !important;
+    }
+  `
+  
+  // 保存到本地存储
+  localStorage.setItem('browser-custom-colors', JSON.stringify(colors))
+  localStorage.setItem('browser-using-custom-colors', 'true')
+  saveSettings()
+  statusText.value = '自定义主题颜色已应用'
+  console.log('✅ 自定义颜色已应用:', colors)
+}
+
+// 更新极简模式
+const updateMinimalistMode = (enabled) => {
+  minimalistMode.value = enabled
+  // 保存到本地存储
+  localStorage.setItem('browser-minimalist-mode', JSON.stringify(enabled))
+  statusText.value = enabled ? '极简模式已开启' : '极简模式已关闭'
+}
+
+// 更新系统置顶
+const updateAlwaysOnTop = async (enabled) => {
+  alwaysOnTop.value = enabled
+  
+  // 通过IPC设置窗口置顶
+  if (window.electronAPI) {
+    try {
+      const result = await window.electronAPI.setAlwaysOnTop(enabled)
+      if (result.success) {
+        statusText.value = enabled ? '窗口已置顶' : '窗口置顶已取消'
+      } else {
+        statusText.value = '置顶设置失败: ' + (result.error || '未知错误')
+      }
+    } catch (error) {
+      console.error('❌ 设置窗口置顶失败:', error)
+      statusText.value = '置顶功能异常'
+    }
+  }
+  
+  // 保存到本地存储
+  localStorage.setItem('browser-always-on-top', JSON.stringify(enabled))
 }
 
 // 书签功能
