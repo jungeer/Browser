@@ -8,6 +8,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 获取应用版本
   getAppVersion: () => ipcRenderer.invoke('get-app-version'),
   
+  // 获取操作系统平台信息
+  getPlatform: () => ipcRenderer.invoke('get-platform'),
+  
   // 监听主进程发送的消息
   onNewTab: (callback) => ipcRenderer.on('new-tab', callback),
   onCloseTab: (callback) => ipcRenderer.on('close-tab', callback),

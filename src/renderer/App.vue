@@ -1409,6 +1409,9 @@ const handleClickOutside = (event) => {
 
 // 生命周期钩子
 onMounted(async () => {
+  // 检测并应用平台样式类
+  await detectAndApplyPlatform()
+  
   // 首先应用主题，避免闪烁
   const savedTheme = localStorage.getItem('browser-theme') || 'dark'
   applyTheme(savedTheme)
@@ -1451,6 +1454,61 @@ onMounted(async () => {
   // 初始化时也调用一次
   setTimeout(handleResize, 500)
 })
+
+// 平台检测和样式应用
+const detectAndApplyPlatform = async () => {
+  try {
+    let platform = 'unknown'
+    
+    // 首先尝试通过 electronAPI 获取平台信息
+    if (window.electronAPI && window.electronAPI.getPlatform) {
+      try {
+        platform = await window.electronAPI.getPlatform()
+        console.log('🖥️ 通过 Electron API 检测到平台:', platform)
+      } catch (err) {
+        console.log('⚠️ Electron API 获取平台失败，使用备用检测:', err)
+      }
+    }
+    
+    // 备用检测方法：通过 userAgent 检测
+    if (platform === 'unknown') {
+      const userAgent = navigator.userAgent.toLowerCase()
+      if (userAgent.includes('win')) {
+        platform = 'win32'
+      } else if (userAgent.includes('mac')) {
+        platform = 'darwin'
+      } else if (userAgent.includes('linux')) {
+        platform = 'linux'
+      }
+      console.log('🖥️ 通过 UserAgent 检测到平台:', platform)
+    }
+    
+    // 应用平台样式类
+    const body = document.body
+    // 清除旧的平台类
+    body.classList.remove('platform-win32', 'platform-darwin', 'platform-linux')
+    // 应用新的平台类
+    if (platform && platform !== 'unknown') {
+      body.classList.add(`platform-${platform}`)
+      console.log('✅ 已应用平台样式类:', `platform-${platform}`)
+      statusText.value = `已适配 ${getPlatformDisplayName(platform)} 系统`
+    }
+    
+  } catch (err) {
+    console.error('❌ 平台检测失败:', err)
+    statusText.value = '系统平台检测异常'
+  }
+}
+
+// 获取平台显示名称
+const getPlatformDisplayName = (platform) => {
+  const platformNames = {
+    'win32': 'Windows',
+    'darwin': 'macOS',
+    'linux': 'Linux'
+  }
+  return platformNames[platform] || '未知'
+}
 
 onUnmounted(() => {
   cleanupElectronListeners()

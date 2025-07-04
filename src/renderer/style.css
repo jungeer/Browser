@@ -174,6 +174,23 @@ body {
   width: 100%;
 }
 
+/* Windows 平台特殊适配 */
+body.platform-win32 .chrome-title-bar {
+  /* Windows 上为原生控制按钮预留空间 */
+  padding-right: 138px; /* Windows 标准三个按钮的宽度（46px * 3） */
+}
+
+/* Linux 平台适配 */
+body.platform-linux .chrome-title-bar {
+  /* Linux 上也为原生控制按钮预留空间 */
+  padding-right: 100px;
+}
+
+/* macOS 平台保持原有设计 */
+body.platform-darwin .chrome-title-bar {
+  padding-right: 0;
+}
+
 /* 标题栏中的所有交互元素必须禁用拖拽 - 根据 Electron 官方文档 */
 .chrome-title-bar button,
 .chrome-title-bar input,
@@ -189,6 +206,11 @@ body {
 .theme-dark .chrome-title-bar {
   background: rgba(26, 32, 44, 0.95); /* 匹配主进程中的 #1a202c */
   border-bottom-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Windows 系统下的深色主题优化 */
+body.platform-win32 .theme-dark .chrome-title-bar {
+  background: rgba(26, 32, 44, 0.98); /* Windows 上稍微不透明一些 */
 }
 
 /* 深色主题下的标签页优化 */
@@ -208,483 +230,71 @@ body {
 }
 
 /* macOS 特殊优化 - 为红绿灯按钮留出空间 */
-@media screen and (-webkit-min-device-pixel-ratio: 1) {
-  .chrome-title-bar .tabs-container {
-    /* 在 macOS 上为红绿灯按钮留出更多空间 */
-    padding-left: 80px;
-  }
+body.platform-darwin .chrome-title-bar .tabs-container {
+  /* 在 macOS 上为红绿灯按钮留出更多空间 */
+  padding-left: 80px;
 }
 
-/* Windows/Linux 优化 - 原生窗口控件区域 */
-.chrome-title-bar {
-  /* 确保在 Windows/Linux 上为原生控件留出空间 */
-  padding-right: env(titlebar-area-x, 0px);
+/* Windows/Linux 优化 - 标签页容器不需要左侧间距 */
+body.platform-win32 .chrome-title-bar .tabs-container,
+body.platform-linux .chrome-title-bar .tabs-container {
+  padding-left: 8px; /* 只保留基本边距 */
 }
 
-/* Chrome风格标签页容器 */
-.tabs-container {
-  flex: 1;
-  display: flex;
-  align-items: stretch;
+/* Windows 上的标题栏高度适配 */
+body.platform-win32 .chrome-title-bar {
+  height: 18px; /* Windows 标准标题栏高度 */
+}
+
+body.platform-win32 #app {
+  padding-top: 18px; /* 匹配 Windows 标题栏高度 */
+}
+
+/* Windows 上的标签页高度适配 */
+body.platform-win32 .tab {
   height: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  padding: 0 8px 0 4px;
-  gap: 0;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  min-height: 30px; /* 确保在较矮的标题栏中有合适高度 */
 }
 
-.tabs-container::-webkit-scrollbar {
-  display: none;
+/* Windows 系统下的视觉优化 */
+body.platform-win32 .chrome-title-bar {
+  /* Windows Fluent Design 风格 */
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
 }
 
-/* Chrome风格标签页 */
-.tab {
-  display: flex;
-  align-items: center;
-  height: 100%;
-  min-width: 120px;
-  max-width: 240px;
-  padding: 0 16px 0 12px;
+/* Linux 系统下的优化 */
+body.platform-linux .chrome-title-bar {
+  /* Linux 系统更简洁的设计 */
   background: rgba(255, 255, 255, 0.06);
-  cursor: pointer;
-  position: relative;
-  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-  border-left: 1px solid rgba(255, 255, 255, 0.08);
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-  /* Chrome风格梯形 */
-  border-radius: 8px 8px 0 0;
-  margin-right: -1px;
-}
-
-.tab:hover {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.15);
-  z-index: 1;
-}
-
-.tab.active {
-  background: rgba(255, 255, 255, 0.18);
-  border-color: rgba(255, 255, 255, 0.2);
-  border-bottom: 1px solid transparent;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  z-index: 2;
-}
-
-.tab.active::before {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--theme-accent);
-  border-radius: 1px 1px 0 0;
-}
-
-/* Chrome风格标签页图标 */
-.tab-favicon,
-.tab-icon {
-  width: 14px;
-  height: 14px;
-  margin-right: 8px;
-  flex-shrink: 0;
-  border-radius: 2px;
-}
-
-.tab-icon {
-  color: var(--theme-text-secondary);
-}
-
-/* Chrome风格标签页标题 */
-.tab-title {
-  flex: 1;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--theme-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  line-height: 1.3;
-}
-
-/* Chrome风格关闭标签按钮 */
-.close-tab-btn {
-  width: 18px;
-  height: 18px;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0;
-  transition: all 0.15s ease;
-  margin-left: 6px;
-  color: var(--theme-text);
-}
-
-.tab:hover .close-tab-btn {
-  opacity: 1;
-}
-
-.close-tab-btn:hover {
-  background: rgba(255, 60, 60, 0.8);
-  color: white;
-  transform: scale(1.1);
-}
-
-/* Chrome风格新建标签按钮 */
-.new-tab-btn {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  color: var(--theme-text);
-  margin: 0 8px 0 4px;
-  align-self: center;
-}
-
-.new-tab-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: scale(1.1);
-}
-
-/* Chrome风格窗口控制区域 */
-.window-controls {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 0 12px 0 8px;
-  height: 100%;
-}
-
-.control-btn {
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: rgba(255, 255, 255, 0.08);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  color: var(--theme-text);
-}
-
-.control-btn:hover {
-  background: rgba(255, 255, 255, 0.15);
-  transform: scale(1.05);
-}
-
-/* 浏览器工具栏样式 - 现代化设计，配合自定义标题栏 */
-.browser-toolbar {
-  display: flex;
-  align-items: center;
-  height: 56px;
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 0 16px;
-  gap: 12px;
-  position: relative;
-  z-index: 100;
-  /* 确保工具栏在标题栏下方 */
-  margin-top: 0;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* 极简模式工具栏样式 */
-.browser-toolbar.minimalist {
-  height: 42px;
-  padding: 0 12px;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.08);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-/* 导航按钮组 */
-.navigation-buttons {
-  display: flex;
-  gap: 6px;
+/* Linux 系统额外优化 */
+body.platform-linux .chrome-title-bar {
+  height: 34px; /* Linux 上稍微高一点 */
 }
 
-.nav-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
-  border-radius: 10px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  color: var(--theme-text);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+body.platform-linux #app {
+  padding-top: 18px;
 }
 
-/* 极简模式导航按钮样式 */
-.browser-toolbar.minimalist .nav-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-}
-
-.nav-btn:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.25);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.nav-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-.nav-btn:disabled {
-  color: rgba(255, 255, 255, 0.3);
-  cursor: not-allowed;
-  background: rgba(255, 255, 255, 0.05);
-}
-
-/* 地址栏区域 */
-.address-bar {
-  flex: 1;
-  display: flex;
-  gap: 8px;
-  max-width: 600px;
-}
-
-.url-container {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(8px);
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  padding: 0 16px;
-  transition: all 0.3s ease;
-}
-
-/* 极简模式地址栏样式 */
-.browser-toolbar.minimalist .url-container {
-  border-radius: 20px;
-  padding: 0 12px;
-  height: 36px;
-}
-
-.url-container:focus-within {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: var(--theme-accent);
-  box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.2);
-}
-
-.security-icon {
-  margin-right: 8px;
-  flex-shrink: 0;
-}
-
-.security-icon.secure {
-  color: #4ade80;
-}
-
-.security-icon.insecure {
-  color: #f59e0b;
-}
-
-.url-input {
-  flex: 1;
-  height: 38px;
-  border: none;
-  background: transparent;
-  font-size: 14px;
-  outline: none;
-  color: var(--theme-text);
-}
-
-.url-input::placeholder {
-  color: var(--theme-text-secondary);
-}
-
-.go-btn {
-  width: 38px;
-  height: 38px;
-  border: none;
-  background: var(--theme-accent);
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  color: white;
-}
-
-.go-btn:hover {
-  background: var(--theme-primary);
-  transform: scale(1.05);
-}
-
-/* 工具栏操作区域 */
-.toolbar-actions {
-  display: flex;
-  gap: 6px;
-}
-
-.action-btn {
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  color: var(--theme-text);
-}
-
-/* 极简模式操作按钮样式 */
-.browser-toolbar.minimalist .action-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-}
-
-.browser-toolbar.minimalist .go-btn {
-  width: 32px;
-  height: 32px;
-}
-
-.action-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-1px);
-}
-
-.bookmark-btn.bookmarked {
-  color: #fbbf24;
-}
-
-/* 网页内容区域 */
-.web-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  background: var(--theme-background);
+/* 确保所有平台的标签页都能正确显示 */
+.tab {
   position: relative;
   overflow: hidden;
-  padding: 16px;
-  /* 确保内容区域正确计算高度，避免状态栏被遮挡 */
-  min-height: 0;
+  white-space: nowrap;
 }
 
-.webview {
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: white;
+.tab-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-webview {
-  width: 100%;
-  height: 100%;
-  border: none;
-  outline: none;
-  background: white;
-}
-
-/* 状态栏样式 - 现代化设计 */
-.status-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 0 16px;
-  font-size: 12px;
-  color: var(--theme-text-secondary);
-}
-
-.status-left,
-.status-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.status-icon {
-  flex-shrink: 0;
-}
-
-.status-icon.offline {
-  color: #f87171;
-}
-
-.status-text {
-  font-weight: 500;
-}
-
-.app-info {
-  font-weight: 400;
-  opacity: 0.7;
-}
-
-/* 响应式设计 */
-@media (max-width: 768px) {
-  .chrome-title-bar {
-    height: 40px;
-  }
-  
-  #app {
-    padding-top: 40px; /* 匹配移动端标题栏高度 */
-  }
-  
-  .browser-toolbar {
-    height: 52px;
-    padding: 0 12px;
-  }
-  
-  .nav-btn, .action-btn, .control-btn {
-    width: 32px;
-    height: 32px;
-  }
-  
-  .tab {
-    min-width: 80px;
-    max-width: 160px;
-    padding: 0 12px 0 8px;
-  }
-  
-  .tab-title {
-    font-size: 11px;
-  }
-  
-  .url-container {
-    padding: 0 12px;
-  }
-  
-  .go-btn {
-    width: 34px;
-    height: 34px;
-  }
+/* 修复可能的 z-index 问题 */
+body.platform-win32 .chrome-title-bar,
+body.platform-linux .chrome-title-bar {
+  z-index: 999999; /* 确保在原生控件下方但在其他内容上方 */
 }
 
 /* 滚动条美化 */
@@ -1099,5 +709,527 @@ input:focus-visible {
   
   .menu-item {
     padding: 10px 14px;
+  }
+}
+
+/* Windows 系统下的额外优化 */
+body.platform-win32 .new-tab-btn,
+body.platform-win32 .control-btn {
+  /* Windows 上使用更小的按钮 */
+  width: 24px;
+  height: 24px;
+}
+
+body.platform-win32 .tab-title {
+  /* Windows 上使用稍小的字体 */
+  font-size: 11px;
+}
+
+/* Windows 高 DPI 显示器适配 */
+@media (-webkit-min-device-pixel-ratio: 1.25) {
+  body.platform-win32 .chrome-title-bar {
+    height: 32px; /* 保持一致的高度 */
+  }
+  
+  body.platform-win32 .tab {
+    min-height: 30px;
+  }
+}
+
+/* Windows 深色模式特殊处理 */
+@media (prefers-color-scheme: dark) {
+  body.platform-win32 .chrome-title-bar {
+    background: rgba(26, 32, 44, 0.98);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Windows 浅色模式适配 */
+@media (prefers-color-scheme: light) {
+  body.platform-win32 .chrome-title-bar {
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    color: #1a202c;
+  }
+  
+  body.platform-win32 .tab {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.06);
+    color: #1a202c;
+  }
+  
+  body.platform-win32 .tab:hover {
+    background: rgba(0, 0, 0, 0.08);
+  }
+  
+  body.platform-win32 .tab.active {
+    background: rgba(0, 0, 0, 0.12);
+  }
+}
+
+/* Chrome风格标签页容器 */
+.tabs-container {
+  flex: 1;
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 8px 0 4px;
+  gap: 0;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tabs-container::-webkit-scrollbar {
+  display: none;
+}
+
+/* Chrome风格标签页 */
+.tab {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  min-width: 120px;
+  max-width: 240px;
+  padding: 0 16px 0 12px;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+  white-space: nowrap;
+  /* Chrome风格梯形 */
+  border-radius: 8px 8px 0 0;
+  margin-right: -1px;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.15);
+  z-index: 1;
+}
+
+.tab.active {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.2);
+  border-bottom: 1px solid transparent;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  z-index: 2;
+}
+
+.tab.active::before {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--theme-accent);
+  border-radius: 1px 1px 0 0;
+}
+
+/* Chrome风格标签页图标 */
+.tab-favicon,
+.tab-icon {
+  width: 14px;
+  height: 14px;
+  margin-right: 8px;
+  flex-shrink: 0;
+  border-radius: 2px;
+}
+
+.tab-icon {
+  color: var(--theme-text-secondary);
+}
+
+/* Chrome风格标签页标题 */
+.tab-title {
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--theme-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+
+/* Chrome风格关闭标签按钮 */
+.close-tab-btn {
+  width: 18px;
+  height: 18px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.15s ease;
+  margin-left: 6px;
+  color: var(--theme-text);
+}
+
+.tab:hover .close-tab-btn {
+  opacity: 1;
+}
+
+.close-tab-btn:hover {
+  background: rgba(255, 60, 60, 0.8);
+  color: white;
+  transform: scale(1.1);
+}
+
+/* Chrome风格新建标签按钮 */
+.new-tab-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--theme-text);
+  margin: 0 8px 0 4px;
+  align-self: center;
+}
+
+.new-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
+/* Chrome风格窗口控制区域 */
+.window-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 12px 0 8px;
+  height: 100%;
+}
+
+.control-btn {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  color: var(--theme-text);
+}
+
+.control-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+/* 浏览器工具栏样式 - 现代化设计，配合自定义标题栏 */
+.browser-toolbar {
+  display: flex;
+  align-items: center;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 0 16px;
+  gap: 12px;
+  position: relative;
+  z-index: 100;
+  /* 确保工具栏在标题栏下方 */
+  margin-top: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 极简模式工具栏样式 */
+.browser-toolbar.minimalist {
+  height: 42px;
+  padding: 0 12px;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* 导航按钮组 */
+.navigation-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.nav-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border-radius: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--theme-text);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 极简模式导航按钮样式 */
+.browser-toolbar.minimalist .nav-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+}
+
+.nav-btn:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.nav-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.nav-btn:disabled {
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* 地址栏区域 */
+.address-bar {
+  flex: 1;
+  display: flex;
+  gap: 8px;
+  max-width: 600px;
+}
+
+.url-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(8px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0 16px;
+  transition: all 0.3s ease;
+}
+
+/* 极简模式地址栏样式 */
+.browser-toolbar.minimalist .url-container {
+  border-radius: 20px;
+  padding: 0 12px;
+  height: 36px;
+}
+
+.url-container:focus-within {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: var(--theme-accent);
+  box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.2);
+}
+
+.security-icon {
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.security-icon.secure {
+  color: #4ade80;
+}
+
+.security-icon.insecure {
+  color: #f59e0b;
+}
+
+.url-input {
+  flex: 1;
+  height: 38px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  outline: none;
+  color: var(--theme-text);
+}
+
+.url-input::placeholder {
+  color: var(--theme-text-secondary);
+}
+
+.go-btn {
+  width: 38px;
+  height: 38px;
+  border: none;
+  background: var(--theme-accent);
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  color: white;
+}
+
+.go-btn:hover {
+  background: var(--theme-primary);
+  transform: scale(1.05);
+}
+
+/* 工具栏操作区域 */
+.toolbar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  color: var(--theme-text);
+}
+
+/* 极简模式操作按钮样式 */
+.browser-toolbar.minimalist .action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+}
+
+.browser-toolbar.minimalist .go-btn {
+  width: 32px;
+  height: 32px;
+}
+
+.action-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.bookmark-btn.bookmarked {
+  color: #fbbf24;
+}
+
+/* 网页内容区域 */
+.web-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--theme-background);
+  position: relative;
+  overflow: hidden;
+  padding: 16px;
+  /* 确保内容区域正确计算高度，避免状态栏被遮挡 */
+  min-height: 0;
+}
+
+.webview {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: white;
+}
+
+webview {
+  width: 100%;
+  height: 100%;
+  border: none;
+  outline: none;
+  background: white;
+}
+
+/* 状态栏样式 - 现代化设计 */
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding: 0 16px;
+  font-size: 12px;
+  color: var(--theme-text-secondary);
+}
+
+.status-left,
+.status-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-icon {
+  flex-shrink: 0;
+}
+
+.status-icon.offline {
+  color: #f87171;
+}
+
+.status-text {
+  font-weight: 500;
+}
+
+.app-info {
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .chrome-title-bar {
+    height: 40px;
+  }
+  
+  #app {
+    padding-top: 18px; /* 匹配移动端标题栏高度 */
+  }
+  
+  .browser-toolbar {
+    height: 52px;
+    padding: 0 12px;
+  }
+  
+  .nav-btn, .action-btn, .control-btn {
+    width: 32px;
+    height: 32px;
+  }
+  
+  .tab {
+    min-width: 80px;
+    max-width: 160px;
+    padding: 0 12px 0 8px;
+  }
+  
+  .tab-title {
+    font-size: 11px;
+  }
+  
+  .url-container {
+    padding: 0 12px;
+  }
+  
+  .go-btn {
+    width: 34px;
+    height: 34px;
   }
 }

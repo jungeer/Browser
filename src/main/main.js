@@ -12,8 +12,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    minWidth: 800,
-    minHeight: 600,
+    minWidth: 400,
+    minHeight: 300,
     transparent: false, // 设为 false，使用 setOpacity 方法控制透明度
     webPreferences: {
       nodeIntegration: false,
@@ -25,19 +25,31 @@ function createWindow() {
     },
     icon: path.join(__dirname, '../../public/icon.jpg'), // 应用图标
     
-    // 自定义标题栏配置 - 根据 Electron 官方文档
+    // 自定义标题栏配置 - 根据平台优化
     titleBarStyle: 'hidden', // 隐藏默认标题栏
-    // 在 Windows/Linux 上显示窗口控制按钮
-    ...(process.platform !== 'darwin' ? { 
+    
+    // Windows 平台优化
+    ...(process.platform === 'win32' ? { 
       titleBarOverlay: {
         color: '#1a202c', // 深色背景，匹配 dark 主题
         symbolColor: '#e2e8f0', // 浅色图标
-        height: 36 // 与我们的标题栏高度匹配
+        height: 32 // Windows 标准标题栏高度
       }
     } : {}),
-    // macOS 上自定义红绿灯位置
+    
+    // Linux 平台优化
+    ...(process.platform === 'linux' ? { 
+      titleBarOverlay: {
+        color: '#1a202c',
+        symbolColor: '#e2e8f0',
+        height: 32
+      }
+    } : {}),
+    
+    // macOS 优化
     ...(process.platform === 'darwin' ? {
-      trafficLightPosition: { x: 16, y: 10 }
+      trafficLightPosition: { x: 16, y: 10 }, // macOS 红绿灯按钮位置
+      titleBarStyle: 'hiddenInset' // macOS 使用 hiddenInset 获得更好效果
     } : {}),
     
     show: false // 先不显示，等待ready-to-show事件
@@ -239,6 +251,18 @@ function setupIPCHandlers() {
   // IPC 事件处理
   ipcMain.handle('get-app-version', () => {
     return app.getVersion()
+  })
+
+  // 获取操作系统平台信息
+  ipcMain.handle('get-platform', () => {
+    try {
+      const platform = process.platform
+      console.log('🖥️ 平台信息查询:', platform)
+      return platform
+    } catch (err) {
+      console.error('❌ 获取平台信息失败:', err)
+      return 'unknown'
+    }
   })
 
   // 设置窗口透明度
