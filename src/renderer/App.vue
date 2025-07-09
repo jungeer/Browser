@@ -306,6 +306,9 @@ const hideDelay = ref(500)
 const hideOpacity = ref(0.1)
 const isMouseInside = ref(true)
 const hideTimeout = ref(null)
+const isUserInteracting = ref(false)  // 新增：用户交互状态
+const lastInteractionTime = ref(Date.now())  // 新增：最后交互时间
+const interactionTimeout = ref(null)  // 新增：交互状态计时器
 
 // 主题相关状态
 const currentTheme = ref('dark')
@@ -666,6 +669,9 @@ const onWebviewReady = (event) => {
   
   // 注入链接拦截脚本
   injectLinkInterceptionScript(event.target)
+  
+  // 设置 webview 事件监听
+  setupWebviewListeners(event.target)
 }
 
 const onTitleUpdated = (event) => {
@@ -963,6 +969,102 @@ const applyTheme = (themeName = 'dark') => {
   })
 }
 
+// 用户交互状态管理
+const startUserInteraction = () => {
+  isUserInteracting.value = true
+  lastInteractionTime.value = Date.now()
+  
+  // 清除可能存在的隐藏计时器
+  if (hideTimeout.value) {
+    clearTimeout(hideTimeout.value)
+    hideTimeout.value = null
+  }
+  
+  // 如果窗口已经隐藏，立即显示
+  if (mouseHideEnabled.value && window.electronAPI) {
+    window.electronAPI.setWindowOpacity(windowOpacity.value)
+  }
+  
+  // 清除之前的交互计时器
+  if (interactionTimeout.value) {
+    clearTimeout(interactionTimeout.value)
+  }
+  
+  // 设置新的交互计时器
+  interactionTimeout.value = setTimeout(() => {
+    isUserInteracting.value = false
+    // 如果鼠标确实在窗口外，才考虑触发隐藏
+    if (!isMouseInside.value) {
+      handleMouseLeave()
+    }
+  }, 2000) // 用户停止交互2秒后才允许触发隐藏
+}
+
+// 处理 webview 事件
+const setupWebviewListeners = (webview) => {
+  if (!webview) return
+  
+  try {
+    // 注入自定义事件监听脚本
+    webview.executeJavaScript(`
+      (function() {
+        if (window.__userInteractionListenersInjected) return;
+        window.__userInteractionListenersInjected = true;
+        
+        // 监听所有可能的用户交互事件
+        const events = [
+          'mousedown', 'mouseup', 'click', 'dblclick',
+          'scroll', 'wheel', 'touchstart', 'touchmove', 'touchend',
+          'keydown', 'keyup'
+        ];
+        
+        const notifyInteraction = () => {
+          window.postMessage({ type: 'user-interaction' }, '*');
+        };
+        
+        events.forEach(eventType => {
+          document.addEventListener(eventType, notifyInteraction, { passive: true });
+        });
+        
+        // 特别处理表单输入
+        document.addEventListener('input', notifyInteraction, { passive: true });
+        
+        // 监听滚动事件
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+          notifyInteraction();
+          clearTimeout(scrollTimeout);
+          scrollTimeout = setTimeout(notifyInteraction, 150); // 滚动结束后再次通知
+        }, { passive: true });
+        
+        console.log('🎮 用户交互监听器已注入');
+      })();
+    `).catch(err => {
+      console.error('无法注入用户交互监听器:', err)
+    })
+    
+    // 监听来自 webview 的消息
+    webview.addEventListener('ipc-message', (event) => {
+      if (event.channel === 'user-interaction') {
+        startUserInteraction()
+      }
+    })
+    
+    // 设置 webview 的预加载脚本，用于转发消息
+    const preloadScript = `
+      window.addEventListener('message', (event) => {
+        if (event.data && event.data.type === 'user-interaction') {
+          window.ipcRenderer.send('user-interaction');
+        }
+      });
+    `
+    webview.setAttribute('preload', `data:text/javascript,${encodeURIComponent(preloadScript)}`)
+    
+  } catch (err) {
+    console.error('设置 webview 事件监听失败:', err)
+  }
+}
+
 // 鼠标事件处理
 const handleMouseEnter = () => {
   isMouseInside.value = true
@@ -978,10 +1080,40 @@ const handleMouseEnter = () => {
 }
 
 const handleMouseLeave = () => {
+  // 如果用户正在交互，不触发隐藏
+  if (isUserInteracting.value) {
+    console.log('用户正在交互中，暂不触发隐藏')
+    return
+  }
+  
+  // 如果正在进行页面跳转，不触发隐藏
+  const currentWebview = getCurrentWebview()
+  if (currentWebview && currentWebview.isLoading()) {
+    console.log('页面正在加载中，暂不触发隐藏')
+    return
+  }
+  
+  // 如果距离上次交互时间太短，不触发隐藏
+  if (Date.now() - lastInteractionTime.value < 1000) {
+    console.log('刚刚有交互，暂不触发隐藏')
+    return
+  }
+
   isMouseInside.value = false
   if (mouseHideEnabled.value) {
+    // 清除可能存在的旧计时器
+    if (hideTimeout.value) {
+      clearTimeout(hideTimeout.value)
+    }
+    
     hideTimeout.value = setTimeout(() => {
-      if (!isMouseInside.value && window.electronAPI) {
+      // 再次进行多重检查
+      const webview = getCurrentWebview()
+      if (!isMouseInside.value && 
+          !isUserInteracting.value &&
+          window.electronAPI && 
+          (!webview || !webview.isLoading()) &&
+          (Date.now() - lastInteractionTime.value >= 1000)) {
         window.electronAPI.setWindowOpacity(hideOpacity.value)
         statusText.value = '鸡米花进入隐身模式'
       }
@@ -993,15 +1125,44 @@ const handleMouseLeave = () => {
 const setupMouseListeners = () => {
   const appElement = document.getElementById('app')
   if (appElement) {
-    // 使用 mouseover/mouseout 代替 mouseenter/mouseleave
-    appElement.addEventListener('mouseover', handleMouseEnter, { passive: true })
-    appElement.addEventListener('mouseout', handleMouseLeave, { passive: true })
+    // 移除旧的事件监听器
+    removeMouseListeners()
     
-    // 额外监听窗口焦点事件作为备用
-    window.addEventListener('focus', handleMouseEnter, { passive: true })
+    // 监听应用程序层面的用户交互
+    const interactionEvents = [
+      'mousedown', 'mouseup', 'click', 'dblclick',
+      'wheel', 'touchstart', 'touchmove', 'touchend',
+      'keydown', 'keyup', 'input'
+    ]
+    
+    interactionEvents.forEach(eventType => {
+      appElement.addEventListener(eventType, startUserInteraction, { passive: true })
+    })
+    
+    // 使用 mouseenter/mouseleave 代替 mouseover/mouseout
+    appElement.addEventListener('mouseenter', handleMouseEnter, { passive: true })
+    appElement.addEventListener('mouseleave', handleMouseLeave, { passive: true })
+    
+    // 额外监听窗口焦点事件
+    window.addEventListener('focus', () => {
+      handleMouseEnter()
+      startUserInteraction()
+    }, { passive: true })
+    
     window.addEventListener('blur', () => {
-      // 给一个短延迟，避免快速切换时的误触发
-      setTimeout(handleMouseLeave, 100)
+      // 窗口失去焦点时，给一个较长的延迟再触发隐藏
+      setTimeout(() => {
+        if (!document.hasFocus() && !isUserInteracting.value) {
+          handleMouseLeave()
+        }
+      }, 500)
+    }, { passive: true })
+    
+    // 监听页面加载状态变化
+    window.addEventListener('load', () => {
+      if (isMouseInside.value) {
+        handleMouseEnter()
+      }
     }, { passive: true })
   } else {
     console.error('❌ 找不到 #app 元素')
@@ -1011,16 +1172,34 @@ const setupMouseListeners = () => {
 const removeMouseListeners = () => {
   const appElement = document.getElementById('app')
   if (appElement) {
-    appElement.removeEventListener('mouseover', handleMouseEnter)
-    appElement.removeEventListener('mouseout', handleMouseLeave)
+    // 移除所有交互事件监听器
+    const interactionEvents = [
+      'mousedown', 'mouseup', 'click', 'dblclick',
+      'wheel', 'touchstart', 'touchmove', 'touchend',
+      'keydown', 'keyup', 'input'
+    ]
+    
+    interactionEvents.forEach(eventType => {
+      appElement.removeEventListener(eventType, startUserInteraction)
+    })
+    
+    appElement.removeEventListener('mouseenter', handleMouseEnter)
+    appElement.removeEventListener('mouseleave', handleMouseLeave)
   }
   
   window.removeEventListener('focus', handleMouseEnter)
   window.removeEventListener('blur', handleMouseLeave)
+  window.removeEventListener('load', handleMouseEnter)
   
+  // 清除所有计时器
   if (hideTimeout.value) {
     clearTimeout(hideTimeout.value)
     hideTimeout.value = null
+  }
+  
+  if (interactionTimeout.value) {
+    clearTimeout(interactionTimeout.value)
+    interactionTimeout.value = null
   }
 }
 
