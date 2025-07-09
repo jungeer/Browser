@@ -162,7 +162,7 @@
               <div class="slider-container">
                 <input 
                   type="range" 
-                  min="0" 
+                  min="0.1" 
                   max="1" 
                   step="0.05" 
                   v-model="opacity"
@@ -170,7 +170,7 @@
                   class="modern-slider opacity-slider"
                 />
                 <div class="slider-marks">
-                  <span>0%</span>
+                  <span>10%</span>
                   <span>25%</span>
                   <span>50%</span>
                   <span>75%</span>
