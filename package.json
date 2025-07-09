@@ -1,6 +1,6 @@
 {
   "name": "stellar-browser",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "鸡米花浏览器 - 为现代用户打造的智能浏览体验",
   "main": "src/main/main.js",
   "scripts": {
